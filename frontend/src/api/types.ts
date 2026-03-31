@@ -102,3 +102,67 @@ export interface Comment {
   createdAt?: string
   updatedAt?: string
 }
+
+// ── Form / request payload types (client-side input shapes) ──────────────────
+
+/** Login form fields. */
+export interface LoginForm {
+  username: string
+  password: string
+}
+
+/** Registration form fields (includes confirmPassword for UI validation). */
+export interface RegisterForm {
+  username: string
+  password: string
+  confirmPassword: string
+  email: string
+}
+
+/** Update profile form fields. */
+export interface UpdateProfileForm {
+  avatar: string
+  bio: string
+}
+
+/** Change-password form fields. */
+export interface ChangePasswordForm {
+  oldPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
+/** Create / edit post form fields. */
+export interface PostCreateForm {
+  forumId: number | undefined
+  title: string
+  content: string
+  tagIds?: number[]
+}
+
+/** Create comment (or reply) form fields. */
+export interface CommentCreateForm {
+  postId: number
+  content: string
+  parentId?: number
+}
+
+/** Create / edit novel form fields. */
+export interface NovelCreateForm {
+  title: string
+  description: string
+  cover: string
+  category: string
+}
+
+/** Create / edit chapter form fields. */
+export interface NovelChapterForm {
+  title: string
+  content: string
+}
+
+/** Common pagination query parameters. */
+export interface PaginationParams {
+  current?: number
+  size?: number
+}
