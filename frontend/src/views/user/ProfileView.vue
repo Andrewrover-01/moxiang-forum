@@ -41,8 +41,25 @@
             >
               编辑资料
             </el-button>
+            <el-button
+              v-else-if="userStore.isLoggedIn"
+              :type="followingUser ? 'default' : 'primary'"
+              size="small"
+              :loading="followLoading"
+              @click="handleToggleFollow"
+            >
+              {{ followingUser ? '已关注' : '关注' }}
+            </el-button>
           </div>
           <p class="profile-bio">{{ profile.bio || '这个人很懒，什么都没留下…' }}</p>
+          <div class="profile-stats">
+            <span class="profile-stat">
+              <strong>{{ followStats.followerCount }}</strong> 粉丝
+            </span>
+            <span class="profile-stat">
+              <strong>{{ followStats.followingCount }}</strong> 关注
+            </span>
+          </div>
           <p class="profile-joined">注册于 {{ formatDateOnly(profile.createdAt) }}</p>
         </div>
       </div>
@@ -149,6 +166,7 @@ import { View, ChatDotRound, Reading } from '@element-plus/icons-vue'
 import { getUser } from '@/api/user'
 import { listUserPosts } from '@/api/post'
 import { listUserNovels } from '@/api/novel'
+import { toggleFollow, isFollowing, getFollowStats } from '@/api/follow'
 import type { UserInfo, Post, Novel } from '@/api/types'
 import { useUserStore } from '@/stores/user'
 import {
@@ -174,9 +192,39 @@ const isSelf = computed(
   () => !!userStore.userInfo && userStore.userInfo.id === profile.value?.id
 )
 
+// ── Follow ────────────────────────────────────────────────────────────────────
+const followingUser = ref(false)
+const followLoading = ref(false)
+const followStats = ref({ followerCount: 0, followingCount: 0 })
+
+async function loadFollowInfo(userId: number) {
+  const [stats, following] = await Promise.all([
+    getFollowStats(userId),
+    userStore.isLoggedIn ? isFollowing(userId) : Promise.resolve(false)
+  ])
+  followStats.value = stats
+  followingUser.value = following
+}
+
+async function handleToggleFollow() {
+  if (!profile.value) return
+  followLoading.value = true
+  try {
+    const result = await toggleFollow(profile.value.id)
+    followingUser.value = result.following
+    followStats.value.followerCount += result.following ? 1 : -1
+  } catch {
+    ElMessage.error('操作失败，请稍后再试')
+  } finally {
+    followLoading.value = false
+  }
+}
+
 async function loadProfile(id: string | string[]) {
   loading.value = true
   profile.value = null
+  followStats.value = { followerCount: 0, followingCount: 0 }
+  followingUser.value = false
   try {
     profile.value = await getUser(id as string)
   } catch {
@@ -249,7 +297,9 @@ watch(activeTab, (tab) => {
 // ── Lifecycle ────────────────────────────────────────────────────────────────
 async function init() {
   await loadProfile(route.params.id)
-  await loadPosts()
+  if (profile.value) {
+    await Promise.all([loadPosts(), loadFollowInfo(profile.value.id)])
+  }
 }
 
 onMounted(init)
@@ -322,6 +372,19 @@ watch(() => route.params.id, (newId, oldId) => {
   color: #606266;
   font-size: 14px;
   margin: 0 0 6px;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: #606266;
+}
+
+.profile-stat strong {
+  color: #303133;
+  font-weight: 600;
 }
 
 .profile-joined {
