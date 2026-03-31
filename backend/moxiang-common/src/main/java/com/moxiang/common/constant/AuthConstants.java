@@ -31,6 +31,15 @@ public final class AuthConstants {
     /** Redis key prefix for novel collect set */
     public static final String NOVEL_COLLECT_PREFIX = "novel:collect:";
 
+    /** Redis key prefix for user follow set (stores user IDs that a user follows) */
+    public static final String USER_FOLLOW_PREFIX = "user:follow:";
+
+    /** Redis key prefix for post favorite set (stores user IDs who favorited a post) */
+    public static final String POST_FAVORITE_PREFIX = "post:favorite:";
+
+    /** Redis key for unread notification count */
+    public static final String NOTIFICATION_UNREAD_PREFIX = "notification:unread:";
+
     /** JWT claim key for user role */
     public static final String CLAIM_ROLE = "role";
 

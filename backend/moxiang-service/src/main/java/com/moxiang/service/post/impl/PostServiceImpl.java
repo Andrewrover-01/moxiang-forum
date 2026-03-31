@@ -12,6 +12,7 @@ import com.moxiang.mbg.entity.Post;
 import com.moxiang.mbg.entity.PostTag;
 import com.moxiang.mbg.mapper.PostMapper;
 import com.moxiang.mbg.mapper.PostTagMapper;
+import com.moxiang.service.notification.NotificationService;
 import com.moxiang.service.post.PostService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,10 +32,13 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
 
     private final RedisUtils redisUtils;
     private final PostTagMapper postTagMapper;
+    private final NotificationService notificationService;
 
-    public PostServiceImpl(RedisUtils redisUtils, PostTagMapper postTagMapper) {
+    public PostServiceImpl(RedisUtils redisUtils, PostTagMapper postTagMapper,
+                           NotificationService notificationService) {
         this.redisUtils = redisUtils;
         this.postTagMapper = postTagMapper;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -155,6 +159,12 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
                     new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Post>()
                             .eq(Post::getId, postId)
                             .setSql("like_count = like_count + 1"));
+            // Notify post author
+            Post post = super.getById(postId);
+            if (post != null) {
+                notificationService.createNotification(
+                        post.getUserId(), userId, "LIKE_POST", postId, "有人点赞了你的帖子");
+            }
             return true;
         }
     }

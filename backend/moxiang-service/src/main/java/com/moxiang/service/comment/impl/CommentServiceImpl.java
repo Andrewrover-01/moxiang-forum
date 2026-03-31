@@ -13,6 +13,7 @@ import com.moxiang.mbg.entity.Post;
 import com.moxiang.mbg.mapper.CommentMapper;
 import com.moxiang.mbg.mapper.PostMapper;
 import com.moxiang.service.comment.CommentService;
+import com.moxiang.service.notification.NotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

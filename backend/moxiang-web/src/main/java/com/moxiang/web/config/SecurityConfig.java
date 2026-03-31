@@ -52,7 +52,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,
                     "/api/post/**",
                     "/api/novel/**",
-                    "/api/comment/**"
+                    "/api/comment/**",
+                    "/api/follow/stats/**"
                 ).permitAll()
                 // Admin-only endpoints
                 .requestMatchers("/api/admin/**").hasRole(AuthConstants.ROLE_ADMIN)

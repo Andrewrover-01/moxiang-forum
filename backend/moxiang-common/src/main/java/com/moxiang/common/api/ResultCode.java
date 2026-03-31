@@ -33,7 +33,19 @@ public enum ResultCode {
     FORUM_NOT_FOUND(4001, "版块不存在"),
 
     // Comment related
-    COMMENT_NOT_FOUND(5001, "评论不存在");
+    COMMENT_NOT_FOUND(5001, "评论不存在"),
+
+    // Follow related
+    ALREADY_FOLLOWING(6001, "已经关注过了"),
+    NOT_FOLLOWING(6002, "尚未关注"),
+    CANNOT_FOLLOW_SELF(6003, "不能关注自己"),
+
+    // Favorite related
+    ALREADY_FAVORITED(7001, "已经收藏过了"),
+    NOT_FAVORITED(7002, "尚未收藏"),
+
+    // Notification related
+    NOTIFICATION_NOT_FOUND(8001, "通知不存在");
 
     private final int code;
     private final String message;
