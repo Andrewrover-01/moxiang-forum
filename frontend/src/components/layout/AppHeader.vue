@@ -26,6 +26,57 @@
           <el-button type="primary" size="small" @click="router.push('/post/create')">
             <el-icon><EditPen /></el-icon>发帖
           </el-button>
+
+          <!-- Notification bell -->
+          <el-popover
+            v-model:visible="notifPopoverVisible"
+            placement="bottom-end"
+            :width="360"
+            trigger="click"
+            popper-class="notif-popover"
+            @show="onNotifOpen"
+          >
+            <template #reference>
+              <el-badge :value="unreadCount || undefined" :max="99" class="notif-badge">
+                <el-button circle size="small" class="notif-btn" title="通知">
+                  <el-icon :size="18"><Bell /></el-icon>
+                </el-button>
+              </el-badge>
+            </template>
+
+            <!-- Notification panel -->
+            <div class="notif-panel">
+              <div class="notif-header">
+                <span class="notif-title">通知</span>
+                <el-button
+                  v-if="notifications.length"
+                  text
+                  size="small"
+                  :loading="markingAll"
+                  @click="handleMarkAllRead"
+                >
+                  全部已读
+                </el-button>
+              </div>
+
+              <el-skeleton v-if="notifLoading" :rows="3" animated />
+              <el-empty v-else-if="!notifications.length" description="暂无通知" :image-size="60" />
+              <ul v-else class="notif-list">
+                <li
+                  v-for="n in notifications"
+                  :key="n.id"
+                  class="notif-item"
+                  :class="{ unread: n.isRead === 0 }"
+                  @click="handleNotifClick(n)"
+                >
+                  <span class="notif-dot" v-if="n.isRead === 0" />
+                  <span class="notif-content">{{ n.content }}</span>
+                  <span class="notif-time">{{ n.createdAt ? formatRelativeDate(n.createdAt) : '' }}</span>
+                </li>
+              </ul>
+            </div>
+          </el-popover>
+
           <el-dropdown @command="handleUserCommand" trigger="click">
             <el-avatar
               :size="36"
@@ -71,11 +122,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, EditPen, User, Setting, Monitor, SwitchButton, Reading } from '@element-plus/icons-vue'
+import { Search, EditPen, User, Setting, Monitor, SwitchButton, Reading, Bell } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
+import {
+  listNotifications,
+  getUnreadCount,
+  markAsRead,
+  markAllAsRead,
+  type Notification
+} from '@/api/notification'
+import { formatRelativeDate } from '@/utils/format'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -105,6 +164,87 @@ async function handleUserCommand(command: string) {
     router.push('/admin')
   }
 }
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+const unreadCount = ref(0)
+const notifications = ref<Notification[]>([])
+const notifLoading = ref(false)
+const notifPopoverVisible = ref(false)
+const markingAll = ref(false)
+
+let pollTimer: ReturnType<typeof setInterval> | null = null
+
+async function fetchUnreadCount() {
+  if (!userStore.isLoggedIn) return
+  try {
+    unreadCount.value = await getUnreadCount()
+  } catch {
+    // silently ignore — badge just won't update
+  }
+}
+
+async function onNotifOpen() {
+  notifLoading.value = true
+  try {
+    const page = await listNotifications(1, 20)
+    notifications.value = page.records
+    unreadCount.value = 0
+  } catch {
+    // ignore
+  } finally {
+    notifLoading.value = false
+  }
+}
+
+async function handleNotifClick(n: Notification) {
+  if (n.isRead === 0) {
+    try {
+      await markAsRead(n.id)
+      n.isRead = 1
+    } catch {
+      // ignore
+    }
+  }
+  notifPopoverVisible.value = false
+  if (n.targetId) {
+    router.push(`/post/${n.targetId}`)
+  }
+}
+
+async function handleMarkAllRead() {
+  markingAll.value = true
+  try {
+    await markAllAsRead()
+    notifications.value.forEach((n) => (n.isRead = 1))
+    unreadCount.value = 0
+  } catch {
+    ElMessage.error('操作失败')
+  } finally {
+    markingAll.value = false
+  }
+}
+
+// Start polling when logged in, stop when not
+watch(
+  () => userStore.isLoggedIn,
+  (loggedIn) => {
+    if (loggedIn) {
+      fetchUnreadCount()
+      pollTimer = setInterval(fetchUnreadCount, 30_000)
+    } else {
+      if (pollTimer) clearInterval(pollTimer)
+      pollTimer = null
+      unreadCount.value = 0
+      notifications.value = []
+    }
+  },
+  { immediate: true }
+)
+
+onUnmounted(() => {
+  if (pollTimer) clearInterval(pollTimer)
+})
 </script>
 
 <style scoped>
@@ -159,6 +299,102 @@ async function handleUserCommand(command: string) {
   background-color: #409eff;
   color: #fff;
   font-weight: 600;
+}
+
+/* Notification bell */
+.notif-badge {
+  line-height: 1;
+}
+
+.notif-btn {
+  border: none;
+  background: transparent;
+  color: #606266;
+  padding: 0;
+}
+
+.notif-btn:hover {
+  color: #409eff;
+}
+
+/* Notification panel (inside popover) */
+.notif-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.notif-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 4px;
+}
+
+.notif-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 4px;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+  font-size: 13px;
+  color: #606266;
+  transition: background 0.15s;
+}
+
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-item:hover {
+  background: #f5f7fa;
+}
+
+.notif-item.unread {
+  background: #ecf5ff;
+}
+
+.notif-item.unread:hover {
+  background: #d9ecff;
+}
+
+.notif-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #409eff;
+  margin-top: 4px;
+}
+
+.notif-content {
+  flex: 1;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.notif-time {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #c0c4cc;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .sub-nav {

@@ -92,7 +92,7 @@
 
             <el-divider />
 
-            <!-- Like / Delete actions -->
+            <!-- Like / Favorite / Delete actions -->
             <div class="post-actions">
               <el-button
                 :type="liked ? 'primary' : 'default'"
@@ -103,6 +103,17 @@
               >
                 {{ liked ? '已点赞' : '点赞' }}
                 <span v-if="post.likeCount > 0" class="like-count"> {{ formatCount(post.likeCount) }}</span>
+              </el-button>
+
+              <el-button
+                v-if="userStore.isLoggedIn"
+                :type="favorited ? 'warning' : 'default'"
+                :icon="CollectionTag"
+                :loading="favoriteLoading"
+                round
+                @click="handleFavorite"
+              >
+                {{ favorited ? '已收藏' : '收藏' }}
               </el-button>
 
               <el-button
@@ -307,12 +318,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
-  Clock, View, ChatDotRound, Star, StarFilled, Delete, EditPen
+  Clock, View, ChatDotRound, Star, StarFilled, Delete, EditPen, CollectionTag
 } from '@element-plus/icons-vue'
 import * as postApi from '@/api/post'
 import * as commentApi from '@/api/comment'
 import * as forumApi from '@/api/forum'
 import * as userApi from '@/api/user'
+import { toggleFavorite, isFavorited } from '@/api/favorite'
 import type { Post, Comment, Forum, UserInfo } from '@/api/types'
 import { formatCount, formatDate, formatRelativeDate } from '@/utils/format'
 import { useUserStore } from '@/stores/user'
@@ -332,6 +344,9 @@ const author = ref<UserInfo | null>(null)
 const liked = ref(false)
 const likeLoading = ref(false)
 const deleteLoading = ref(false)
+
+const favorited = ref(false)
+const favoriteLoading = ref(false)
 
 const canEdit = computed(
   () =>
@@ -370,16 +385,20 @@ async function loadPost() {
   try {
     post.value = await postApi.getPost(route.params.id as string)
     // Load related data in parallel
-    const [forumData, authorData, likeData] = await Promise.allSettled([
+    const [forumData, authorData, likeData, favData] = await Promise.allSettled([
       forumApi.getForum(post.value.forumId),
       userApi.getUser(post.value.userId),
       userStore.isLoggedIn
         ? postApi.getPostLikeStatus(post.value.id)
-        : Promise.resolve({ liked: false })
+        : Promise.resolve({ liked: false }),
+      userStore.isLoggedIn
+        ? isFavorited(post.value.id)
+        : Promise.resolve(false)
     ])
     if (forumData.status === 'fulfilled') forum.value = forumData.value
     if (authorData.status === 'fulfilled') author.value = authorData.value
     if (likeData.status === 'fulfilled') liked.value = likeData.value.liked
+    if (favData.status === 'fulfilled') favorited.value = favData.value
   } catch {
     post.value = null
   } finally {
@@ -465,6 +484,25 @@ async function handleLike() {
     post.value.likeCount += result.liked ? 1 : -1
   } finally {
     likeLoading.value = false
+  }
+}
+
+async function handleFavorite() {
+  if (!userStore.isLoggedIn) {
+    ElMessage.warning('请先登录')
+    router.push({ name: 'login', query: { redirect: route.fullPath } })
+    return
+  }
+  if (!post.value) return
+  favoriteLoading.value = true
+  try {
+    const result = await toggleFavorite(post.value.id)
+    favorited.value = result.favorited
+    ElMessage.success(result.favorited ? '已收藏' : '已取消收藏')
+  } catch {
+    ElMessage.error('操作失败，请稍后再试')
+  } finally {
+    favoriteLoading.value = false
   }
 }
 
