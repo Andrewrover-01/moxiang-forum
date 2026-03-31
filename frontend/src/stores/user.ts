@@ -1,17 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import http from '@/api/http'
+import * as userApi from '@/api/user'
+import type { UserInfo } from '@/api/types'
 
-export interface UserInfo {
-  id: number
-  username: string
-  email: string
-  avatar?: string
-  bio?: string
-  role: 'USER' | 'ADMIN'
-  status?: number
-  createdAt?: string
-}
+// Re-export for backward compatibility with any components importing from this store
+export type { UserInfo }
 
 const TOKEN_KEY = 'mx_token'
 
@@ -45,11 +38,8 @@ export const useUserStore = defineStore('user', () => {
   async function login(username: string, password: string): Promise<void> {
     loading.value = true
     try {
-      const res = await http.post<{ data: { token: string } }>('/user/login', {
-        username,
-        password
-      })
-      setToken(res.data.data.token)
+      const result = await userApi.login(username, password)
+      setToken(result.token)
       await fetchUserInfo()
     } finally {
       loading.value = false
@@ -64,12 +54,7 @@ export const useUserStore = defineStore('user', () => {
   ): Promise<UserInfo> {
     loading.value = true
     try {
-      const res = await http.post<{ data: UserInfo }>('/user/register', {
-        username,
-        password,
-        email
-      })
-      return res.data.data
+      return await userApi.register(username, password, email)
     } finally {
       loading.value = false
     }
@@ -79,8 +64,8 @@ export const useUserStore = defineStore('user', () => {
   async function fetchUserInfo(): Promise<void> {
     if (!token.value) return
     try {
-      const res = await http.get<{ data: UserInfo }>('/user/info')
-      setUserInfo(res.data.data)
+      const info = await userApi.getUserInfo()
+      setUserInfo(info)
     } catch {
       // Token is invalid / expired — clear local state
       logout()
@@ -89,7 +74,7 @@ export const useUserStore = defineStore('user', () => {
 
   /** Update avatar and/or bio for the current user. */
   async function updateProfile(avatar: string, bio: string): Promise<void> {
-    await http.put('/user/profile', { avatar, bio })
+    await userApi.updateProfile(avatar, bio)
     if (userInfo.value) {
       userInfo.value.avatar = avatar
       userInfo.value.bio = bio
@@ -97,18 +82,15 @@ export const useUserStore = defineStore('user', () => {
   }
 
   /** Change the current user's password. */
-  async function changePassword(
-    oldPassword: string,
-    newPassword: string
-  ): Promise<void> {
-    await http.put('/user/password', { oldPassword, newPassword })
+  async function changePassword(oldPassword: string, newPassword: string): Promise<void> {
+    await userApi.changePassword(oldPassword, newPassword)
   }
 
   /** Notify the backend to blacklist the token, then clear local state. */
   async function callLogout(): Promise<void> {
     if (token.value) {
       try {
-        await http.post('/user/logout')
+        await userApi.logout()
       } catch {
         // Ignore — we still clear local state
       }
@@ -133,4 +115,5 @@ export const useUserStore = defineStore('user', () => {
     callLogout
   }
 })
+
 

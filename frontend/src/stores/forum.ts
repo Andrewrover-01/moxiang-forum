@@ -1,28 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import http from '@/api/http'
+import * as forumApi from '@/api/forum'
+import type { Forum, PageResult } from '@/api/types'
 
-// ── Type definitions ──────────────────────────────────────────────────────────
-
-export interface Forum {
-  id: number
-  name: string
-  description: string
-  icon?: string
-  sortOrder?: number
-  postCount: number
-  status: number
-  createdAt?: string
-  updatedAt?: string
-}
-
-export interface ForumPage {
-  records: Forum[]
-  total: number
-  size: number
-  current: number
-  pages: number
-}
+// Re-export for backward compatibility with any components importing from this store
+export type { Forum }
 
 // ── Store ─────────────────────────────────────────────────────────────────────
 
@@ -34,7 +16,7 @@ export const useForumStore = defineStore('forum', () => {
   const currentForum = ref<Forum | null>(null)
 
   /** Paginated forum list (for admin / browse pages). */
-  const page = ref<ForumPage>({
+  const page = ref<PageResult<Forum>>({
     records: [],
     total: 0,
     size: 20,
@@ -56,8 +38,7 @@ export const useForumStore = defineStore('forum', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await http.get<{ data: Forum[] }>('/forum/list')
-      forums.value = res.data.data ?? []
+      forums.value = await forumApi.listForums()
     } catch (e: any) {
       error.value = e?.message ?? '加载板块失败'
     } finally {
@@ -70,8 +51,7 @@ export const useForumStore = defineStore('forum', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await http.get<{ data: Forum }>(`/forum/${id}`)
-      currentForum.value = res.data.data
+      currentForum.value = await forumApi.getForum(id)
     } catch (e: any) {
       error.value = e?.message ?? '加载板块详情失败'
       currentForum.value = null
@@ -85,10 +65,7 @@ export const useForumStore = defineStore('forum', () => {
     loading.value = true
     error.value = null
     try {
-      const res = await http.get<{ data: ForumPage }>('/forum/page', {
-        params: { current, size }
-      })
-      page.value = res.data.data
+      page.value = await forumApi.pageForums(current, size)
     } catch (e: any) {
       error.value = e?.message ?? '加载板块列表失败'
     } finally {
