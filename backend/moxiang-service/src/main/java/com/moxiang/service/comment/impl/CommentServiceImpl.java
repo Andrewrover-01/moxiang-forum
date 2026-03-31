@@ -27,10 +27,13 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
 
     private final PostMapper postMapper;
     private final RedisUtils redisUtils;
+    private final NotificationService notificationService;
 
-    public CommentServiceImpl(PostMapper postMapper, RedisUtils redisUtils) {
+    public CommentServiceImpl(PostMapper postMapper, RedisUtils redisUtils,
+                              NotificationService notificationService) {
         this.postMapper = postMapper;
         this.redisUtils = redisUtils;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -55,6 +58,20 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 new com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper<Post>()
                         .eq(Post::getId, postId)
                         .setSql("comment_count = comment_count + 1"));
+
+        // Send notification to the appropriate recipient
+        if (parentId == null) {
+            // Top-level comment: notify the post author
+            notificationService.createNotification(
+                    post.getUserId(), userId, "COMMENT_POST", postId, "有人评论了你的帖子");
+        } else {
+            // Reply: notify the parent comment's author
+            Comment parent = super.getById(parentId);
+            if (parent != null) {
+                notificationService.createNotification(
+                        parent.getUserId(), userId, "REPLY_COMMENT", comment.getId(), "有人回复了你的评论");
+            }
+        }
 
         return comment;
     }
