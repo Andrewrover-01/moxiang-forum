@@ -77,18 +77,6 @@ services:
     expose:
       - "8080"
 
-  # ─────────────────────────────── Frontend ──────────────────────────────
-  frontend:
-    build:
-      # Root as context so Dockerfile can reach both frontend/ and nginx.conf
-      context: .
-      dockerfile: frontend/Dockerfile
-    restart: unless-stopped
-    ports:
-      - "${APP_PORT:-80}:80"
-    depends_on:
-      - backend
-
 volumes:
   mysql_data:
   redis_data:
