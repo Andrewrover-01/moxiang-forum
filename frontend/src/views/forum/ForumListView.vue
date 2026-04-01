@@ -32,10 +32,8 @@
               <el-card shadow="hover" class="forum-card">
                 <!-- Icon -->
                 <div class="forum-icon-wrap">
-                  <el-icon v-if="forum.icon" class="forum-icon">
-                    <component :is="forum.icon" />
-                  </el-icon>
-                  <el-icon v-else class="forum-icon"><ChatDotRound /></el-icon>
+                  <img v-if="forum.icon" :src="forum.icon" class="forum-icon" :alt="`${forum.name} icon`" />
+                  <el-icon v-else class="forum-icon forum-icon-default"><ChatDotRound /></el-icon>
                 </div>
 
                 <!-- Name & description -->
@@ -125,6 +123,11 @@ onMounted(() => {
 }
 
 .forum-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.forum-icon-default {
   font-size: 36px;
   color: #409eff;
 }

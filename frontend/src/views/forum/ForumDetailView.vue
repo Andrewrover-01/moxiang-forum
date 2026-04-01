@@ -16,10 +16,8 @@
           <el-skeleton v-if="forumLoading" :rows="2" animated />
           <div v-else-if="forum" class="forum-header">
             <div class="forum-header-icon">
-              <el-icon v-if="forum.icon" class="header-icon">
-                <component :is="forum.icon" />
-              </el-icon>
-              <el-icon v-else class="header-icon"><ChatDotRound /></el-icon>
+              <img v-if="forum.icon" :src="forum.icon" class="header-icon" :alt="`${forum.name} icon`" />
+              <el-icon v-else class="header-icon header-icon-default"><ChatDotRound /></el-icon>
             </div>
             <div class="forum-header-info">
               <h1 class="forum-title">{{ forum.name }}</h1>
@@ -238,6 +236,11 @@ function stripMarkdown(text: string): string {
 }
 
 .header-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.header-icon-default {
   font-size: 48px;
   color: #409eff;
 }
