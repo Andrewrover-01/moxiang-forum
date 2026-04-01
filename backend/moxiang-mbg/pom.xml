@@ -15,10 +15,10 @@
     <description>MyBatis-Plus generated models and mappers</description>
 
     <dependencies>
-        <!-- MyBatis-Plus -->
+        <!-- MyBatis-Plus (Spring Boot 3 compatible) -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
         </dependency>
 
         <!-- MySQL Driver -->
@@ -32,11 +32,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
-            <version>${mybatis-plus.version}</version> <!-- 这样它就会跟着父目录变成 3.5.7 -->
         </dependency>
     </dependencies>
 </project>
