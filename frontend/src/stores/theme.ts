@@ -17,7 +17,7 @@ function applyTheme(mode: ThemeMode) {
 
 export const useThemeStore = defineStore('theme', () => {
   const mode = ref<ThemeMode>(
-    (localStorage.getItem(STORAGE_KEY) as ThemeMode) || 'light'
+    (localStorage.getItem(STORAGE_KEY) as ThemeMode) || 'warm'
   )
 
   function setMode(m: ThemeMode) {
