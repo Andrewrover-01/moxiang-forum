@@ -1,8 +1,8 @@
 <template>
   <div class="home-page">
-    <el-row :gutter="20">
+    <div class="home-layout">
       <!-- ── Main feed ─────────────────────────────────────────────────── -->
-      <el-col :xs="24" :sm="24" :md="17">
+      <div class="main-col">
         <el-card shadow="never" class="feed-card">
           <template #header>
             <div class="feed-header">
@@ -76,10 +76,10 @@
             </div>
           </template>
         </el-card>
-      </el-col>
+      </div>
 
       <!-- ── Sidebar ──────────────────────────────────────────────────── -->
-      <el-col :xs="0" :sm="0" :md="7" class="sidebar-col">
+      <div class="sidebar-col">
         <!-- Hot novels card -->
         <el-card shadow="never" class="sidebar-card">
           <template #header>
@@ -136,8 +136,8 @@
 
         <!-- Forum + quick links (AppSidebar) -->
         <AppSidebar />
-      </el-col>
-    </el-row>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -232,6 +232,18 @@ function stripMarkdown(text: string): string {
 <style scoped>
 .home-page {
   padding: 0;
+}
+
+/* ── Two-column flex layout ──────────────────────────────────────────────── */
+.home-layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.main-col {
+  flex: 1;
+  min-width: 0;
 }
 
 /* ── Feed card ───────────────────────────────────────────────────────────── */
@@ -334,9 +346,18 @@ function stripMarkdown(text: string): string {
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
 .sidebar-col {
+  min-width: 260px;
+  width: 260px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* Hide sidebar on small screens (xs / sm breakpoints) */
+@media (max-width: 767px) {
+  .sidebar-col {
+    display: none;
+  }
 }
 
 .sidebar-card {
