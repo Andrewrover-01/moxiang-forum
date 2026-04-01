@@ -5,25 +5,25 @@
    Dark mode also uses Element Plus's html.dark class.
    ============================================================ */
 
-/* ── Light theme (default) ───────────────────────────────── */
+/* ── Light theme (default — 墨香古风) ────────────────────── */
 :root,
 [data-theme='light'] {
-  --theme-bg-page:     #f5f6f7;
+  --theme-bg-page:     #FAF7F0;
   --theme-bg-card:     #ffffff;
-  --theme-bg-header:   #ffffff;
-  --theme-bg-sub-nav:  #ffffff;
-  --theme-bg-fill:     #f5f7fa;
+  --theme-bg-header:   #FAF7F0;
+  --theme-bg-sub-nav:  #FAF7F0;
+  --theme-bg-fill:     #f5f0e8;
 
-  --theme-text-primary:     #303133;
-  --theme-text-regular:     #606266;
-  --theme-text-secondary:   #909399;
-  --theme-text-placeholder: #c0c4cc;
+  --theme-text-primary:     #333333;
+  --theme-text-regular:     #666666;
+  --theme-text-secondary:   #999999;
+  --theme-text-placeholder: #bbbbbb;
 
-  --theme-border:        #e4e7ed;
-  --theme-border-light:  #f0f0f0;
+  --theme-border:        #e0d5c5;
+  --theme-border-light:  #f0e8da;
 
-  --theme-link:   #409eff;
-  --theme-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  --theme-link:   #8B0000;
+  --theme-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
   --theme-transition: background-color 0.25s ease, color 0.25s ease,
                       border-color 0.25s ease;

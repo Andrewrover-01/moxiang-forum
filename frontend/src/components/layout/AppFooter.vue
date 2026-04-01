@@ -17,8 +17,8 @@
 
 <style scoped>
 .app-footer {
-  background: #fff;
-  border-top: 1px solid #e4e7ed;
+  background: #FAF7F0;
+  border-top: 1px solid #e0d5c5;
 }
 
 .footer-inner {
@@ -28,8 +28,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #909399;
+  color: #999999;
   font-size: 13px;
+  font-family: var(--mx-font-serif, "SimSun", serif);
 }
 
 .footer-links {
@@ -38,11 +39,11 @@
 }
 
 .footer-links a {
-  color: #909399;
+  color: #999999;
   text-decoration: none;
 }
 
 .footer-links a:hover {
-  color: #409eff;
+  color: #8B0000;
 }
 </style>

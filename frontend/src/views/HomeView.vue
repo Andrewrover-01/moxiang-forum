@@ -1,7 +1,52 @@
 <template>
   <div class="home-page">
+    <!-- ── Hero Section ────────────────────────────────────────────── -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <h1 class="hero-title">墨香论坛</h1>
+        <p class="hero-subtitle">文字为墨，思想为香——小说爱好者的雅集之地</p>
+        <div class="hero-actions">
+          <router-link to="/forum" class="btn btn-primary">
+            <el-icon><Reading /></el-icon>
+            进入论坛
+          </router-link>
+          <router-link to="/register" class="btn btn-secondary">
+            免费注册
+          </router-link>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Stats Section ───────────────────────────────────────────── -->
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <el-icon :size="28" color="#8B0000"><UserFilled /></el-icon>
+          </div>
+          <div class="stat-number">{{ statsDisplay.members }}</div>
+          <div class="stat-label">注册会员</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <el-icon :size="28" color="#8B0000"><ChatDotSquare /></el-icon>
+          </div>
+          <div class="stat-number">{{ statsDisplay.posts }}</div>
+          <div class="stat-label">发布帖子</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <el-icon :size="28" color="#8B0000"><Collection /></el-icon>
+          </div>
+          <div class="stat-number">{{ statsDisplay.novels }}</div>
+          <div class="stat-label">收录小说</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Forum Content ────────────────────────────────────────────── -->
     <div class="home-layout">
-      <!-- ── Main feed ─────────────────────────────────────────────────── -->
+      <!-- Main feed -->
       <div class="main-col">
         <el-card shadow="never" class="feed-card">
           <template #header>
@@ -78,7 +123,7 @@
         </el-card>
       </div>
 
-      <!-- ── Sidebar ──────────────────────────────────────────────────── -->
+      <!-- Sidebar -->
       <div class="sidebar-col">
         <!-- Hot novels card -->
         <el-card shadow="never" class="sidebar-card">
@@ -144,7 +189,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Clock, View, ChatDotRound, Star, Reading, Picture } from '@element-plus/icons-vue'
+import {
+  Clock, View, ChatDotRound, Star, Reading, Picture,
+  UserFilled, ChatDotSquare, Collection
+} from '@element-plus/icons-vue'
 import * as postApi from '@/api/post'
 import * as novelApi from '@/api/novel'
 import type { Post, Novel } from '@/api/types'
@@ -169,6 +217,10 @@ const forumMap = computed<Record<number, string>>(() => {
   for (const f of forumStore.forums) map[f.id] = f.name
   return map
 })
+
+// ── Stats display ─────────────────────────────────────────────────────────────
+
+const statsDisplay = ref({ members: '—', posts: '—', novels: '—' })
 
 // ── Data loading ──────────────────────────────────────────────────────────────
 
@@ -197,6 +249,9 @@ async function loadNovels() {
   try {
     const page = await novelApi.listNovels(undefined, 1, 6)
     novels.value = page.records
+    if (page.total != null && page.total > 0) {
+      statsDisplay.value.novels = formatCount(page.total)
+    }
   } catch {
     // handled globally
   } finally {
@@ -219,11 +274,11 @@ onMounted(() => {
 /** Strip common markdown markers for a plain-text excerpt. */
 function stripMarkdown(text: string): string {
   return text
-    .replace(/#{1,6}\s+/g, '')      // headings
-    .replace(/\*{1,3}(.+?)\*{1,3}/g, '$1') // bold / italic
-    .replace(/`{1,3}[^`]*`{1,3}/g, '') // code
-    .replace(/!\[.*?\]\(.*?\)/g, '') // images
-    .replace(/\[(.+?)\]\(.*?\)/g, '$1') // links
+    .replace(/#{1,6}\s+/g, '')
+    .replace(/\*{1,3}(.+?)\*{1,3}/g, '$1')
+    .replace(/`{1,3}[^`]*`{1,3}/g, '')
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    .replace(/\[(.+?)\]\(.*?\)/g, '$1')
     .replace(/\n+/g, ' ')
     .trim()
 }
@@ -234,11 +289,142 @@ function stripMarkdown(text: string): string {
   padding: 0;
 }
 
-/* ── Two-column flex layout ──────────────────────────────────────────────── */
+/* ── Hero Section ────────────────────────────────────────────────── */
+.hero-section {
+  width: 100%;
+  background: linear-gradient(135deg, #FAF7F0 0%, #f5ece0 100%);
+  border-bottom: 1px solid #e0d5c5;
+  padding: 64px 10% 56px;
+  text-align: center;
+}
+
+.hero-content {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.hero-title {
+  font-size: 56px;
+  font-weight: 700;
+  color: #333333;
+  letter-spacing: 8px;
+  font-family: var(--mx-font-serif, "Source Han Serif CN", "SimSun", serif);
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.hero-subtitle {
+  font-size: 16px;
+  color: #666666;
+  letter-spacing: 3px;
+  line-height: 1.8;
+  margin-bottom: 36px;
+  font-family: var(--mx-font-serif, "SimSun", serif);
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: var(--mx-font-serif, "SimSun", serif);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background-color: #8B0000;
+  color: #ffffff;
+  border-color: #8B0000;
+}
+
+.btn-primary:hover {
+  background-color: #a50000;
+  border-color: #a50000;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.btn-secondary {
+  background-color: #FAF7F0;
+  color: #5c3d1e;
+  border-color: #c8b89a;
+}
+
+.btn-secondary:hover {
+  background-color: #f0ece0;
+  border-color: #8B0000;
+  color: #8B0000;
+  text-decoration: none;
+}
+
+/* ── Stats Section ───────────────────────────────────────────────── */
+.stats-section {
+  padding: 40px 10%;
+  background: #FAF7F0;
+}
+
+.stats-grid {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.stat-card {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 32px 24px;
+  text-align: center;
+  border: 1px solid #f0e8da;
+  transition: box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.stat-icon {
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+}
+
+.stat-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333333;
+  letter-spacing: 1px;
+  font-family: var(--mx-font-serif, "SimSun", serif);
+  margin-bottom: 6px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #999999;
+  letter-spacing: 1px;
+}
+
+/* ── Two-column flex layout ──────────────────────────────────────── */
 .home-layout {
   display: flex;
   gap: 20px;
   align-items: flex-start;
+  padding: 24px 10% 40px;
 }
 
 .main-col {
@@ -246,9 +432,10 @@ function stripMarkdown(text: string): string {
   min-width: 0;
 }
 
-/* ── Feed card ───────────────────────────────────────────────────────────── */
+/* ── Feed card ───────────────────────────────────────────────────── */
 .feed-card {
   border-radius: 8px;
+  border-color: #e0d5c5;
 }
 
 .feed-header {
@@ -259,24 +446,24 @@ function stripMarkdown(text: string): string {
 
 .feed-tabs {
   flex: 1;
-  margin-bottom: -14px; /* pull tabs flush with card border */
+  margin-bottom: -14px;
 }
 
 .more-link {
   font-size: 13px;
-  color: #909399;
+  color: #999999;
   white-space: nowrap;
   margin-left: 12px;
 }
 
 .more-link:hover {
-  color: #409eff;
+  color: #8B0000;
 }
 
 /* Skeleton */
 .skeleton-item {
   padding: 14px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0e8da;
 }
 
 .skeleton-item:last-child {
@@ -286,7 +473,7 @@ function stripMarkdown(text: string): string {
 /* Post item */
 .post-item {
   padding: 14px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid #f0e8da;
 }
 
 .post-item:last-child {
@@ -308,19 +495,21 @@ function stripMarkdown(text: string): string {
   display: block;
   font-size: 15px;
   font-weight: 500;
-  color: #303133;
+  color: #333333;
   line-height: 1.5;
   margin-bottom: 4px;
   text-decoration: none;
+  font-family: var(--mx-font-serif, "SimSun", serif);
 }
 
 .post-title:hover {
-  color: #409eff;
+  color: #8B0000;
+  text-decoration: none;
 }
 
 .post-excerpt {
   font-size: 13px;
-  color: #909399;
+  color: #999999;
   line-height: 1.5;
   margin-bottom: 6px;
   display: -webkit-box;
@@ -334,7 +523,7 @@ function stripMarkdown(text: string): string {
   align-items: center;
   gap: 14px;
   font-size: 12px;
-  color: #c0c4cc;
+  color: #bbbbbb;
 }
 
 .meta-time,
@@ -344,7 +533,7 @@ function stripMarkdown(text: string): string {
   gap: 3px;
 }
 
-/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+/* ── Sidebar ─────────────────────────────────────────────────────── */
 .sidebar-col {
   min-width: 260px;
   width: 260px;
@@ -353,15 +542,33 @@ function stripMarkdown(text: string): string {
   gap: 16px;
 }
 
-/* Hide sidebar on small screens (xs / sm breakpoints) */
 @media (max-width: 767px) {
   .sidebar-col {
     display: none;
+  }
+
+  .home-layout {
+    padding: 16px 4% 32px;
+  }
+
+  .hero-section,
+  .stats-section {
+    padding-left: 4%;
+    padding-right: 4%;
+  }
+
+  .stats-grid {
+    flex-direction: column;
+  }
+
+  .hero-title {
+    font-size: 36px;
   }
 }
 
 .sidebar-card {
   border-radius: 8px;
+  border-color: #e0d5c5;
 }
 
 .card-header {
@@ -370,18 +577,21 @@ function stripMarkdown(text: string): string {
   gap: 6px;
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: #333333;
+  font-family: var(--mx-font-serif, "SimSun", serif);
 }
 
 .card-more {
   margin-left: auto;
   font-size: 12px;
-  color: #909399;
+  color: #999999;
   font-weight: 400;
+  text-decoration: none;
 }
 
 .card-more:hover {
-  color: #409eff;
+  color: #8B0000;
+  text-decoration: none;
 }
 
 /* Novel items */
@@ -389,7 +599,7 @@ function stripMarkdown(text: string): string {
   display: flex;
   gap: 10px;
   padding: 10px 0;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid #f0e8da;
 }
 
 .novel-item:last-child {
@@ -413,11 +623,11 @@ function stripMarkdown(text: string): string {
 .cover-placeholder {
   width: 52px;
   height: 70px;
-  background: #f5f7fa;
+  background: #f5f0e8;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #c0c4cc;
+  color: #c8b89a;
   font-size: 20px;
   border-radius: 4px;
 }
@@ -433,15 +643,17 @@ function stripMarkdown(text: string): string {
 .novel-title {
   font-size: 13px;
   font-weight: 500;
-  color: #303133;
+  color: #333333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-decoration: none;
+  font-family: var(--mx-font-serif, "SimSun", serif);
 }
 
 .novel-title:hover {
-  color: #409eff;
+  color: #8B0000;
+  text-decoration: none;
 }
 
 .novel-meta {
@@ -452,7 +664,7 @@ function stripMarkdown(text: string): string {
 
 .novel-stats {
   font-size: 11px;
-  color: #c0c4cc;
+  color: #bbbbbb;
   display: flex;
   gap: 8px;
 }
