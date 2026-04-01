@@ -47,6 +47,8 @@ backend/
 
 ## Quick Start
 
+> **Recommended:** Use the Docker one-liner from the repo root instead of running the backend manually — see the [root README](../README.md) for details.
+
 ### 1. Create the Database
 
 ```sql
