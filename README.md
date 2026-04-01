@@ -104,7 +104,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/moxiang_forum?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: 你的MySQL密码
+    password: YOUR_MYSQL_PASSWORD
 
   data:
     redis:
@@ -192,7 +192,7 @@ sudo mysql -u root
 
 # 创建数据库和专用用户
 CREATE DATABASE moxiang_forum CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'moxiang'@'localhost' IDENTIFIED BY '强密码';
+CREATE USER 'moxiang'@'localhost' IDENTIFIED BY 'YOUR_DB_PASSWORD';
 GRANT ALL PRIVILEGES ON moxiang_forum.* TO 'moxiang'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
@@ -207,7 +207,7 @@ mysql -u moxiang -p moxiang_forum < backend/moxiang-web/src/main/resources/db/sc
 
 ```bash
 export MYSQL_USERNAME=moxiang
-export MYSQL_PASSWORD=强密码
+export MYSQL_PASSWORD=YOUR_DB_PASSWORD
 ```
 
 **方式二：创建 `application-prod.yml`**
@@ -219,13 +219,13 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/moxiang_forum?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: moxiang
-    password: 强密码
+    password: YOUR_DB_PASSWORD
 
   data:
     redis:
       host: localhost
       port: 6379
-      password: Redis密码（若无则留空）
+      password: YOUR_REDIS_PASSWORD   # Leave empty if Redis has no password
 
 server:
   port: 8080
@@ -241,9 +241,17 @@ spring:
 
 **修改 JWT 密钥**（必须，生产环境需使用足够长的随机密钥）：
 
+使用以下命令生成安全的 256 位（32 字节）随机密钥：
+
+```bash
+openssl rand -base64 32
+```
+
+将生成的字符串填入 `application.yml`：
+
 ```yaml
 jwt:
-  secret: 替换为至少256位的随机字符串
+  secret: YOUR_SECRET_KEY_AT_LEAST_32_BYTES_LONG   # 使用 openssl rand -base64 32 生成
   expiration: 604800
 ```
 
@@ -286,7 +294,7 @@ User=www-data
 WorkingDirectory=/opt/moxiang
 ExecStart=/usr/bin/java -jar /opt/moxiang/moxiang-web-1.0.0.jar
 Environment="MYSQL_USERNAME=moxiang"
-Environment="MYSQL_PASSWORD=强密码"
+Environment="MYSQL_PASSWORD=YOUR_DB_PASSWORD"
 Restart=on-failure
 RestartSec=10
 
