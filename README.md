@@ -90,10 +90,12 @@ cp .env.example .env
 MYSQL_ROOT_PASSWORD=你的MySQL_root密码
 MYSQL_USERNAME=moxiang
 MYSQL_PASSWORD=你的应用数据库密码
+REDIS_PASSWORD=如果想给 Redis 设置密码则填写（留空则不开启认证）
 JWT_SECRET=用 openssl rand -hex 32 生成的随机字符串
 ```
 
 > 💡 生成安全 JWT 密钥：`openssl rand -hex 32`
+> 💡 如果设置了 `REDIS_PASSWORD`，Docker Compose 会自动为 Redis 启用 `requirepass` 并让后端使用同样的密码；请保证 `.env` 中的值一致，否则会看到 Redis 认证错误。
 
 **3. 构建镜像并启动**
 
