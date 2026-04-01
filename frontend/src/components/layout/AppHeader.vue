@@ -23,6 +23,17 @@
       <!-- Right-side actions -->
       <div class="header-actions">
         <template v-if="userStore.isLoggedIn">
+          <!-- Theme toggle -->
+          <el-tooltip :content="themeTooltip" placement="bottom">
+            <el-button circle size="small" class="theme-btn" @click="cycleTheme">
+              <el-icon :size="16">
+                <Sunny v-if="themeStore.mode === 'light'" />
+                <Coffee v-else-if="themeStore.mode === 'warm'" />
+                <Moon v-else />
+              </el-icon>
+            </el-button>
+          </el-tooltip>
+
           <el-button type="primary" size="small" @click="router.push('/post/create')">
             <el-icon><EditPen /></el-icon>发帖
           </el-button>
@@ -104,6 +115,16 @@
           </el-dropdown>
         </template>
         <template v-else>
+          <!-- Theme toggle (also visible when logged out) -->
+          <el-tooltip :content="themeTooltip" placement="bottom">
+            <el-button circle size="small" class="theme-btn" @click="cycleTheme">
+              <el-icon :size="16">
+                <Sunny v-if="themeStore.mode === 'light'" />
+                <Coffee v-else-if="themeStore.mode === 'warm'" />
+                <Moon v-else />
+              </el-icon>
+            </el-button>
+          </el-tooltip>
           <el-button @click="router.push('/login')">登录</el-button>
           <el-button type="primary" @click="router.push('/register')">注册</el-button>
         </template>
@@ -122,11 +143,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, EditPen, User, Setting, Monitor, SwitchButton, Reading, Bell } from '@element-plus/icons-vue'
+import { Search, EditPen, User, Setting, Monitor, SwitchButton, Reading, Bell, Sunny, Moon, Coffee } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
+import { useThemeStore, type ThemeMode } from '@/stores/theme'
 import {
   listNotifications,
   getUnreadCount,
@@ -138,7 +160,23 @@ import { formatRelativeDate } from '@/utils/format'
 
 const router = useRouter()
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 const searchKeyword = ref('')
+
+const themeTooltip = computed(() => {
+  const map: Record<ThemeMode, string> = {
+    light: '切换至浅黄模式',
+    warm:  '切换至夜间模式',
+    dark:  '切换至日间模式'
+  }
+  return map[themeStore.mode]
+})
+
+const themeOrder: ThemeMode[] = ['light', 'warm', 'dark']
+function cycleTheme() {
+  const idx = themeOrder.indexOf(themeStore.mode)
+  themeStore.setMode(themeOrder[(idx + 1) % themeOrder.length])
+}
 
 function handleSearch() {
   const kw = searchKeyword.value.trim()
@@ -249,12 +287,12 @@ onUnmounted(() => {
 
 <style scoped>
 .app-header {
-  background: #fff;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--theme-bg-header, #fff);
+  border-bottom: 1px solid var(--theme-border, #e4e7ed);
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--theme-shadow, 0 1px 4px rgba(0, 0, 0, 0.08));
 }
 
 .header-inner {
@@ -277,7 +315,7 @@ onUnmounted(() => {
 .logo-text {
   font-size: 20px;
   font-weight: 700;
-  color: #303133;
+  color: var(--theme-text-primary, #303133);
   letter-spacing: 1px;
 }
 
@@ -301,6 +339,19 @@ onUnmounted(() => {
   font-weight: 600;
 }
 
+/* Theme toggle button */
+.theme-btn {
+  border: 1px solid var(--theme-border, #e4e7ed);
+  background: transparent;
+  color: var(--theme-text-regular, #606266);
+  padding: 0;
+}
+
+.theme-btn:hover {
+  color: var(--theme-link, #409eff);
+  border-color: var(--theme-link, #409eff);
+}
+
 /* Notification bell */
 .notif-badge {
   line-height: 1;
@@ -309,12 +360,12 @@ onUnmounted(() => {
 .notif-btn {
   border: none;
   background: transparent;
-  color: #606266;
+  color: var(--theme-text-regular, #606266);
   padding: 0;
 }
 
 .notif-btn:hover {
-  color: #409eff;
+  color: var(--theme-link, #409eff);
 }
 
 /* Notification panel (inside popover) */
@@ -328,14 +379,14 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 8px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
   margin-bottom: 4px;
 }
 
 .notif-title {
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
+  color: var(--theme-text-primary, #303133);
 }
 
 .notif-list {
@@ -351,10 +402,10 @@ onUnmounted(() => {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 4px;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid var(--theme-border-light, #f5f5f5);
   cursor: pointer;
   font-size: 13px;
-  color: #606266;
+  color: var(--theme-text-regular, #606266);
   transition: background 0.15s;
 }
 
@@ -363,15 +414,15 @@ onUnmounted(() => {
 }
 
 .notif-item:hover {
-  background: #f5f7fa;
+  background: var(--theme-bg-fill, #f5f7fa);
 }
 
 .notif-item.unread {
-  background: #ecf5ff;
+  background: var(--theme-bg-fill, #ecf5ff);
 }
 
 .notif-item.unread:hover {
-  background: #d9ecff;
+  filter: brightness(0.96);
 }
 
 .notif-dot {
@@ -379,7 +430,7 @@ onUnmounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #409eff;
+  background: var(--theme-link, #409eff);
   margin-top: 4px;
 }
 
@@ -392,14 +443,14 @@ onUnmounted(() => {
 .notif-time {
   flex-shrink: 0;
   font-size: 11px;
-  color: #c0c4cc;
+  color: var(--theme-text-placeholder, #c0c4cc);
   margin-left: auto;
   white-space: nowrap;
 }
 
 .sub-nav {
-  background: #fff;
-  border-bottom: 1px solid #e4e7ed;
+  background: var(--theme-bg-sub-nav, #fff);
+  border-bottom: 1px solid var(--theme-border, #e4e7ed);
   position: sticky;
   top: 60px;
   z-index: 99;
@@ -416,7 +467,7 @@ onUnmounted(() => {
 .sub-nav-item {
   padding: 10px 16px;
   text-decoration: none;
-  color: #606266;
+  color: var(--theme-text-regular, #606266);
   font-size: 14px;
   border-bottom: 2px solid transparent;
   transition: color 0.2s, border-color 0.2s;
@@ -424,7 +475,7 @@ onUnmounted(() => {
 
 .sub-nav-item:hover,
 .sub-nav-item.active {
-  color: #409eff;
-  border-bottom-color: #409eff;
+  color: var(--theme-link, #409eff);
+  border-bottom-color: var(--theme-link, #409eff);
 }
 </style>

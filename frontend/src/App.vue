@@ -26,7 +26,7 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 <style scoped>
 .app-wrapper {
   min-height: 100vh;
-  background-color: #f5f6f7;
+  background-color: var(--theme-bg-page, #f5f6f7);
 }
 
 .app-main {
@@ -60,13 +60,13 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  background-color: #f5f6f7;
-  color: #303133;
+  background-color: var(--theme-bg-page, #f5f6f7);
+  color: var(--theme-text-primary, #303133);
   line-height: 1.6;
 }
 
 a {
-  color: #409eff;
+  color: var(--theme-link, #409eff);
   text-decoration: none;
 }
 
