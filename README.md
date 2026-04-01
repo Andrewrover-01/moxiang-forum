@@ -91,9 +91,12 @@ MYSQL_ROOT_PASSWORD=你的MySQL_root密码
 MYSQL_USERNAME=moxiang
 MYSQL_PASSWORD=你的应用数据库密码
 JWT_SECRET=用 openssl rand -hex 32 生成的随机字符串
+REDIS_PASSWORD=生产环境推荐设置的 Redis 密码（留空则不开启认证）
 ```
 
 > 💡 生成安全 JWT 密钥：`openssl rand -hex 32`
+>
+> 🔐 如果设置了 `REDIS_PASSWORD`，docker-compose 会自动为 Redis 启用 `requirepass` 并使用同一密码进行健康检查，防止后端因认证不一致而连接失败。
 
 **3. 构建镜像并启动**
 
@@ -530,7 +533,7 @@ sudo systemctl reload nginx
 A: 检查 MySQL 是否已启动，以及数据库连接信息（主机、端口、用户名、密码）是否正确。Docker 部署时请等待 `mysql` 服务通过健康检查后 backend 才会启动。
 
 **Q: 后端启动报错 `Unable to connect to Redis`？**  
-A: 检查 Redis 是否已启动，端口是否为 6379。
+A: 检查 Redis 是否已启动，端口是否为 6379。如果在 `.env` 中设置了 `REDIS_PASSWORD`，请确认 Redis 与后端使用的密码一致（docker-compose 会自动将该密码传给 Redis 并开启认证）。
 
 **Q: 前端页面空白或路由跳转 404？**  
 A: 生产/Nginx 环境需配置 `try_files $uri $uri/ /index.html`，以支持 Vue Router history 模式。
