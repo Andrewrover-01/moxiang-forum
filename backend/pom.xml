@@ -64,6 +64,7 @@
                 <artifactId>mybatis-plus-core</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
+         
 
             <!-- JWT -->
             <dependency>

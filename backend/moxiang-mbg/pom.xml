@@ -33,5 +33,10 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>${mybatis-plus.version}</version> <!-- 这样它就会跟着父目录变成 3.5.7 -->
+        </dependency>
     </dependencies>
 </project>
