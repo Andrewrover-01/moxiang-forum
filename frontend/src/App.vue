@@ -26,14 +26,14 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 <style scoped>
 .app-wrapper {
   min-height: 100vh;
-  background-color: var(--theme-bg-page, #f5f6f7);
+  background-color: var(--mx-bg-page, #FAF7F0);
 }
 
 .app-main {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 20px 12px;
+  padding: 24px 12px;
   box-sizing: border-box;
 }
 
@@ -58,15 +58,14 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
-    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  background-color: var(--theme-bg-page, #f5f6f7);
-  color: var(--theme-text-primary, #303133);
+  font-family: var(--mx-font-serif, "Source Han Serif CN", "SimSun", Georgia, serif);
+  background-color: var(--mx-bg-page, #FAF7F0);
+  color: var(--mx-text-primary, #333333);
   line-height: 1.6;
 }
 
 a {
-  color: var(--theme-link, #409eff);
+  color: var(--theme-link, #8B0000);
   text-decoration: none;
 }
 

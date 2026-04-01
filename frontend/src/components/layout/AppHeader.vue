@@ -1,32 +1,38 @@
 <template>
   <!-- Top navigation bar -->
-  <el-header class="app-header" height="60px">
+  <header class="app-header">
     <div class="header-inner">
       <!-- Logo -->
       <router-link to="/" class="logo">
-        <el-icon :size="28" color="#409eff"><Reading /></el-icon>
+        <el-icon :size="26" color="#8B0000"><Reading /></el-icon>
         <span class="logo-text">墨香论坛</span>
       </router-link>
 
-      <!-- Search box -->
-      <div class="search-bar">
+      <!-- Center nav links -->
+      <nav class="nav-links">
+        <router-link to="/" class="nav-item" active-class="active" exact>论坛首页</router-link>
+        <router-link to="/forum" class="nav-item" active-class="active">板块分类</router-link>
+        <router-link to="/novel" class="nav-item" active-class="active">小说书库</router-link>
+      </nav>
+
+      <!-- Right-side actions -->
+      <div class="header-actions">
+        <!-- Search -->
         <el-input
           v-model="searchKeyword"
           placeholder="搜索帖子、小说..."
           :prefix-icon="Search"
           clearable
+          size="small"
+          class="search-input"
           @keyup.enter="handleSearch"
-          style="width: 340px"
         />
-      </div>
 
-      <!-- Right-side actions -->
-      <div class="header-actions">
         <template v-if="userStore.isLoggedIn">
           <!-- Theme toggle -->
           <el-tooltip :content="themeTooltip" placement="bottom">
-            <el-button circle size="small" class="theme-btn" @click="cycleTheme">
-              <el-icon :size="16">
+            <el-button circle size="small" class="icon-btn" @click="cycleTheme">
+              <el-icon :size="15">
                 <Sunny v-if="themeStore.mode === 'light'" />
                 <Coffee v-else-if="themeStore.mode === 'warm'" />
                 <Moon v-else />
@@ -34,7 +40,8 @@
             </el-button>
           </el-tooltip>
 
-          <el-button type="primary" size="small" @click="router.push('/post/create')">
+          <!-- Post button -->
+          <el-button class="post-btn" @click="router.push('/post/create')">
             <el-icon><EditPen /></el-icon>发帖
           </el-button>
 
@@ -49,8 +56,8 @@
           >
             <template #reference>
               <el-badge :value="unreadCount || undefined" :max="99" class="notif-badge">
-                <el-button circle size="small" class="notif-btn" title="通知">
-                  <el-icon :size="18"><Bell /></el-icon>
+                <el-button circle size="small" class="icon-btn" title="通知">
+                  <el-icon :size="17"><Bell /></el-icon>
                 </el-button>
               </el-badge>
             </template>
@@ -88,14 +95,15 @@
             </div>
           </el-popover>
 
+          <!-- User avatar dropdown -->
           <el-dropdown @command="handleUserCommand" trigger="click">
-            <el-avatar
-              :size="36"
-              :src="userStore.userInfo?.avatar"
-              class="user-avatar"
-            >
-              {{ userStore.userInfo?.username?.charAt(0)?.toUpperCase() }}
-            </el-avatar>
+            <div class="user-info">
+              <el-avatar :size="32" :src="userStore.userInfo?.avatar" class="user-avatar">
+                {{ userStore.userInfo?.username?.charAt(0)?.toUpperCase() }}
+              </el-avatar>
+              <span class="username">{{ userStore.userInfo?.username }}</span>
+              <el-icon :size="12" class="arrow-icon"><ArrowDown /></el-icon>
+            </div>
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item command="profile">
@@ -114,39 +122,34 @@
             </template>
           </el-dropdown>
         </template>
+
         <template v-else>
-          <!-- Theme toggle (also visible when logged out) -->
+          <!-- Theme toggle (logged out) -->
           <el-tooltip :content="themeTooltip" placement="bottom">
-            <el-button circle size="small" class="theme-btn" @click="cycleTheme">
-              <el-icon :size="16">
+            <el-button circle size="small" class="icon-btn" @click="cycleTheme">
+              <el-icon :size="15">
                 <Sunny v-if="themeStore.mode === 'light'" />
                 <Coffee v-else-if="themeStore.mode === 'warm'" />
                 <Moon v-else />
               </el-icon>
             </el-button>
           </el-tooltip>
-          <el-button @click="router.push('/login')">登录</el-button>
-          <el-button type="primary" @click="router.push('/register')">注册</el-button>
+          <el-button class="login-btn" @click="router.push('/login')">登录</el-button>
+          <el-button class="register-btn" @click="router.push('/register')">免费注册</el-button>
         </template>
       </div>
     </div>
-  </el-header>
-
-  <!-- Secondary navigation -->
-  <div class="sub-nav">
-    <div class="sub-nav-inner">
-      <router-link to="/" class="sub-nav-item" active-class="active" exact>首页</router-link>
-      <router-link to="/forum" class="sub-nav-item" active-class="active">板块</router-link>
-      <router-link to="/novel" class="sub-nav-item" active-class="active">小说</router-link>
-    </div>
-  </div>
+  </header>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, EditPen, User, Setting, Monitor, SwitchButton, Reading, Bell, Sunny, Moon, Coffee } from '@element-plus/icons-vue'
+import {
+  Search, EditPen, User, Setting, Monitor, SwitchButton,
+  Reading, Bell, Sunny, Moon, Coffee, ArrowDown
+} from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 import { useThemeStore, type ThemeMode } from '@/stores/theme'
 import {
@@ -218,7 +221,7 @@ async function fetchUnreadCount() {
   try {
     unreadCount.value = await getUnreadCount()
   } catch {
-    // silently ignore — badge just won't update
+    // silently ignore
   }
 }
 
@@ -263,7 +266,6 @@ async function handleMarkAllRead() {
   }
 }
 
-// Start polling when logged in, stop when not
 watch(
   () => userStore.isLoggedIn,
   (loggedIn) => {
@@ -286,24 +288,25 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ── Header bar ─────────────────────────────────────────────── */
 .app-header {
-  background: var(--theme-bg-header, #fff);
-  border-bottom: 1px solid var(--theme-border, #e4e7ed);
+  background: var(--theme-bg-header, #FAF7F0);
+  border-bottom: 1px solid var(--theme-border, #e0d5c5);
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: var(--theme-shadow, 0 1px 4px rgba(0, 0, 0, 0.08));
+  box-shadow: var(--theme-shadow, 0 2px 8px rgba(0, 0, 0, 0.06));
 }
 
 .header-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  height: 100%;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 24px;
+  padding: 0 10%;
+  height: 64px;
 }
 
+/* ── Logo ────────────────────────────────────────────────────── */
 .logo {
   display: flex;
   align-items: center;
@@ -315,60 +318,150 @@ onUnmounted(() => {
 .logo-text {
   font-size: 20px;
   font-weight: 700;
-  color: var(--theme-text-primary, #303133);
-  letter-spacing: 1px;
+  color: #333333;
+  letter-spacing: 2px;
+  font-family: var(--mx-font-serif, "SimSun", serif);
 }
 
-.search-bar {
-  flex: 1;
+/* ── Center nav links ────────────────────────────────────────── */
+.nav-links {
   display: flex;
-  justify-content: center;
+  align-items: center;
+  gap: 4px;
 }
 
+.nav-item {
+  padding: 8px 16px;
+  text-decoration: none;
+  color: var(--theme-text-regular, #666666);
+  font-size: 14px;
+  font-family: var(--mx-font-serif, "SimSun", serif);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  color: #8B0000;
+  border-bottom-color: #8B0000;
+  text-decoration: none;
+}
+
+/* ── Right-side actions ──────────────────────────────────────── */
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
-.user-avatar {
-  cursor: pointer;
-  background-color: #409eff;
-  color: #fff;
-  font-weight: 600;
+.search-input {
+  min-width: 160px;
+  max-width: 240px;
+  flex: 1;
 }
 
-/* Theme toggle button */
-.theme-btn {
-  border: 1px solid var(--theme-border, #e4e7ed);
+/* Icon-only circular buttons */
+.icon-btn {
+  border: 1px solid var(--theme-border, #e0d5c5);
   background: transparent;
-  color: var(--theme-text-regular, #606266);
+  color: var(--theme-text-regular, #666666);
   padding: 0;
 }
 
-.theme-btn:hover {
-  color: var(--theme-link, #409eff);
-  border-color: var(--theme-link, #409eff);
+.icon-btn:hover {
+  color: #8B0000;
+  border-color: #8B0000;
 }
 
-/* Notification bell */
+/* Post button — deep crimson with brush icon */
+.post-btn {
+  background-color: #8B0000;
+  border-color: #8B0000;
+  color: #ffffff;
+  border-radius: var(--mx-radius, 8px);
+  font-family: var(--mx-font-serif, "SimSun", serif);
+  font-size: 13px;
+  padding: 6px 14px;
+  height: auto;
+}
+
+.post-btn:hover {
+  background-color: #a50000;
+  border-color: #a50000;
+  color: #ffffff;
+}
+
+/* Login / Register buttons */
+.login-btn {
+  border: 1px solid var(--theme-border, #e0d5c5);
+  background: transparent;
+  color: var(--theme-text-regular, #666666);
+  border-radius: var(--mx-radius-sm, 4px);
+  font-size: 13px;
+}
+
+.login-btn:hover {
+  border-color: #8B0000;
+  color: #8B0000;
+}
+
+.register-btn {
+  background-color: #8B0000;
+  border-color: #8B0000;
+  color: #ffffff;
+  border-radius: var(--mx-radius-sm, 4px);
+  font-size: 13px;
+}
+
+.register-btn:hover {
+  background-color: #a50000;
+  border-color: #a50000;
+  color: #ffffff;
+}
+
+/* ── User info section ───────────────────────────────────────── */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--mx-radius-sm, 4px);
+  transition: background 0.2s;
+}
+
+.user-info:hover {
+  background: var(--theme-bg-fill, #f5f0e8);
+}
+
+.user-avatar {
+  background-color: #8B0000;
+  color: #fff;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.username {
+  font-size: 13px;
+  color: var(--theme-text-regular, #666666);
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arrow-icon {
+  color: var(--theme-text-muted, #999999);
+}
+
+/* ── Notification badge ──────────────────────────────────────── */
 .notif-badge {
   line-height: 1;
 }
 
-.notif-btn {
-  border: none;
-  background: transparent;
-  color: var(--theme-text-regular, #606266);
-  padding: 0;
-}
-
-.notif-btn:hover {
-  color: var(--theme-link, #409eff);
-}
-
-/* Notification panel (inside popover) */
+/* Notification panel */
 .notif-panel {
   display: flex;
   flex-direction: column;
@@ -379,14 +472,14 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
+  border-bottom: 1px solid var(--theme-border-light, #f0e8da);
   margin-bottom: 4px;
 }
 
 .notif-title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--theme-text-primary, #303133);
+  color: var(--theme-text-primary, #333333);
 }
 
 .notif-list {
@@ -402,10 +495,10 @@ onUnmounted(() => {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 4px;
-  border-bottom: 1px solid var(--theme-border-light, #f5f5f5);
+  border-bottom: 1px solid var(--theme-border-light, #f0e8da);
   cursor: pointer;
   font-size: 13px;
-  color: var(--theme-text-regular, #606266);
+  color: var(--theme-text-regular, #666666);
   transition: background 0.15s;
 }
 
@@ -414,15 +507,15 @@ onUnmounted(() => {
 }
 
 .notif-item:hover {
-  background: var(--theme-bg-fill, #f5f7fa);
+  background: var(--theme-bg-fill, #f5f0e8);
 }
 
 .notif-item.unread {
-  background: var(--theme-bg-fill, #ecf5ff);
+  background: #fdf0f0;
 }
 
 .notif-item.unread:hover {
-  filter: brightness(0.96);
+  filter: brightness(0.97);
 }
 
 .notif-dot {
@@ -430,7 +523,7 @@ onUnmounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--theme-link, #409eff);
+  background: #8B0000;
   margin-top: 4px;
 }
 
@@ -443,39 +536,9 @@ onUnmounted(() => {
 .notif-time {
   flex-shrink: 0;
   font-size: 11px;
-  color: var(--theme-text-placeholder, #c0c4cc);
+  color: var(--theme-text-placeholder, #bbbbbb);
   margin-left: auto;
   white-space: nowrap;
 }
-
-.sub-nav {
-  background: var(--theme-bg-sub-nav, #fff);
-  border-bottom: 1px solid var(--theme-border, #e4e7ed);
-  position: sticky;
-  top: 60px;
-  z-index: 99;
-}
-
-.sub-nav-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  gap: 4px;
-  padding: 0 8px;
-}
-
-.sub-nav-item {
-  padding: 10px 16px;
-  text-decoration: none;
-  color: var(--theme-text-regular, #606266);
-  font-size: 14px;
-  border-bottom: 2px solid transparent;
-  transition: color 0.2s, border-color 0.2s;
-}
-
-.sub-nav-item:hover,
-.sub-nav-item.active {
-  color: var(--theme-link, #409eff);
-  border-bottom-color: var(--theme-link, #409eff);
-}
 </style>
+
