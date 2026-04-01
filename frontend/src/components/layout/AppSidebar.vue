@@ -19,10 +19,8 @@
             class="forum-item"
           >
             <router-link :to="`/forum/${forum.id}`" class="forum-link">
-              <el-icon v-if="forum.icon" class="forum-icon">
-                <component :is="forum.icon" />
-              </el-icon>
-              <el-icon v-else class="forum-icon"><ChatDotRound /></el-icon>
+              <img v-if="forum.icon" :src="forum.icon" class="forum-icon" :alt="`${forum.name} icon`" />
+              <el-icon v-else class="forum-icon forum-icon-default"><ChatDotRound /></el-icon>
               <span class="forum-name">{{ forum.name }}</span>
               <el-badge
                 :value="formatCount(forum.postCount)"
@@ -132,6 +130,12 @@ onMounted(() => {
 }
 
 .forum-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.forum-icon-default {
   color: #409eff;
   flex-shrink: 0;
 }
