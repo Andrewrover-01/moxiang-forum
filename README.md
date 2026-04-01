@@ -229,6 +229,166 @@ npm run dev
 
 ---
 
+## ☁️ 服务器 Docker 部署（生产环境推荐）
+
+在**云服务器或 VPS**上使用 Docker 部署，兼顾生产环境的稳定性与便捷性。
+
+### 一、服务器安装 Docker 与 Docker Compose（Ubuntu）
+
+```bash
+# 更新包索引
+sudo apt update
+
+# 安装依赖
+sudo apt install -y ca-certificates curl gnupg
+
+# 添加 Docker 官方 GPG 密钥
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# 添加 Docker apt 源
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# 安装 Docker Engine 与 Docker Compose 插件
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# 允许当前用户无需 sudo 执行 docker 命令（需重新登录生效）
+sudo usermod -aG docker $USER
+
+# 验证安装
+docker --version
+docker compose version
+```
+
+### 二、克隆项目
+
+```bash
+git clone https://github.com/Andrewrover-01/moxiang-forum.git
+cd moxiang-forum
+```
+
+### 三、配置生产环境变量
+
+```bash
+cp .env.example .env
+nano .env
+```
+
+在 `.env` 中**至少修改以下字段**（不要使用默认值）：
+
+```dotenv
+MYSQL_ROOT_PASSWORD=强密码_root
+MYSQL_USERNAME=moxiang
+MYSQL_PASSWORD=强密码_app
+JWT_SECRET=用下面命令生成的随机字符串
+# APP_PORT=80   # 对外暴露端口，默认 80
+```
+
+生成安全的 JWT 密钥：
+
+```bash
+openssl rand -hex 32
+```
+
+### 四、构建镜像并启动服务
+
+```bash
+docker compose up -d --build
+```
+
+> 首次启动时 Docker 会自动构建后端和前端镜像，并拉取 MySQL、Redis 官方镜像，可能需要几分钟。
+
+### 五、确认所有服务正常运行
+
+```bash
+# 查看各容器状态（均应为 Up/healthy）
+docker compose ps
+
+# 实时查看日志
+docker compose logs -f
+```
+
+所有服务健康后，访问 `http://<服务器公网IP>` 即可使用。
+
+### 六、开放服务器防火墙端口
+
+如果服务器启用了防火墙（如 ufw 或云平台安全组），需放行 HTTP/HTTPS 端口：
+
+```bash
+# UFW 示例
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw reload
+```
+
+> 云平台（阿里云、腾讯云、AWS 等）还需在控制台的**安全组**规则中放行对应端口。
+
+### 七、（可选）配置 HTTPS
+
+若已有域名并解析到服务器，可使用 Certbot 申请免费 SSL 证书。由于前端容器内置 Nginx，最简单的方式是在宿主机再部署一层 Nginx 作为反向代理。
+
+> ⚠️ 使用宿主机 Nginx 时，需先将 `.env` 中的 `APP_PORT` 改为非 80 端口（如 `8088`）以避免端口冲突，再重启 Docker 服务：
+> ```bash
+> # 修改 .env 中的 APP_PORT
+> APP_PORT=8088
+> # 重启 frontend 容器使端口配置生效
+> docker compose up -d --build frontend
+> ```
+
+```bash
+sudo apt install -y nginx certbot python3-certbot-nginx
+
+# 创建 Nginx 站点配置（将 your-domain.com 替换为实际域名）
+sudo tee /etc/nginx/sites-available/moxiang > /dev/null <<'EOF'
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8088;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+EOF
+
+sudo ln -s /etc/nginx/sites-available/moxiang /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+
+# 申请并自动配置 HTTPS
+sudo certbot --nginx -d your-domain.com
+```
+
+### 八、日常管理命令
+
+```bash
+# 停止所有服务（保留数据卷）
+docker compose down
+
+# 停止并清除数据卷（⚠️ 数据库数据将被删除）
+docker compose down -v
+
+# 更新代码并重新部署
+git pull
+docker compose up -d --build
+
+# 重启单个服务
+docker compose restart backend
+
+# 查看某个服务的日志
+docker compose logs -f backend
+```
+
+---
+
 ## 🖥️ 服务器手动部署（生产环境）
 
 如需在服务器上不依赖 Docker 进行部署，请参考以下步骤。
