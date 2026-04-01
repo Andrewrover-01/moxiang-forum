@@ -32,3 +32,6 @@ frontend/package-lock.json
 # Maven build
 backend/*/target/
 backend/target/
+
+# Environment secrets – copy .env.example to .env and fill in real values
+.env
