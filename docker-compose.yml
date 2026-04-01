@@ -24,10 +24,30 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    command: |
+        sh -c 'set -e
+        if [ -n "$${REDIS_PASSWORD}" ]; then
+          mkdir -p /usr/local/etc/redis
+          cat >/usr/local/etc/redis/pass.conf <<EOF
+        requirepass $${REDIS_PASSWORD}
+        EOF
+          chmod 600 /usr/local/etc/redis/pass.conf
+          exec redis-server /usr/local/etc/redis/pass.conf
+        else
+          exec redis-server
+        fi'
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+        - CMD-SHELL
+        - |
+          if [ -n "$${REDIS_PASSWORD}" ]; then
+            export REDISCLI_AUTH="$${REDIS_PASSWORD}"
+          fi
+          redis-cli ping
       interval: 10s
       timeout: 5s
       retries: 5
