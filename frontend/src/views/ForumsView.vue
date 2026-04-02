@@ -12,7 +12,10 @@
               class="forum-item"
               @click="router.push(`/forum/${forum.id}`)"
             >
-              <div class="forum-icon">{{ forum.icon || forum.name.charAt(0) }}</div>
+              <div class="forum-icon">
+                <img v-if="forum.icon && (forum.icon.startsWith('/') || forum.icon.startsWith('http'))" :src="forum.icon" :alt="forum.name" class="forum-icon-img" />
+                <span v-else>{{ forum.icon || forum.name.charAt(0) }}</span>
+              </div>
               <div class="forum-info">
                 <div class="forum-name">{{ forum.name }}</div>
                 <div class="forum-desc">{{ forum.description }}</div>
@@ -114,6 +117,13 @@ onMounted(async () => {
   font-size: 20px;
   color: #8B0000;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.forum-icon-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .forum-info {
