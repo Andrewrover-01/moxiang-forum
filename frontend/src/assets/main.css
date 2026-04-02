@@ -1,0 +1,50 @@
+/* =====================================================
+ * 墨香论坛 — 全局样式
+ * 新中式极简：背景 #FAF7F0，主色 #8B0000，衬线字体
+ * ===================================================== */
+
+/* CSS 自定义变量 */
+:root {
+  --color-bg: #FAF7F0;
+  --color-primary: #8B0000;
+  --color-primary-hover: #a00000;
+  --color-card: #ffffff;
+  --color-text: #2c1a0e;
+  --color-text-muted: #7a6a5a;
+  --color-border: #e8e0d5;
+  --font-serif: "Source Han Serif CN", "SimSun", serif;
+  --header-height: 64px;
+  --content-width: 1200px;
+}
+
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg);
+  font-family: var(--font-serif);
+  color: var(--color-text);
+  min-height: 100vh;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}

@@ -1,7 +1,8 @@
 <template>
   <el-config-provider>
-    <AppHeader />
-    <router-view />
+    <MainLayout>
+      <router-view />
+    </MainLayout>
   </el-config-provider>
 </template>
 
@@ -9,7 +10,7 @@
 import { onMounted } from 'vue'
 import { getUserInfo } from '@/api/user'
 import { useUserStore } from '@/store/user'
-import AppHeader from '@/components/AppHeader.vue'
+import MainLayout from '@/layouts/MainLayout.vue'
 
 const userStore = useUserStore()
 
@@ -30,35 +31,3 @@ onMounted(async () => {
   }
 })
 </script>
-
-<style>
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  background-color: #FAF7F0;
-  font-family: "Source Han Serif CN", "SimSun", serif;
-  color: #2c1a0e;
-  min-height: 100vh;
-}
-
-#app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-a {
-  color: #8B0000;
-}
-
-a:hover {
-  color: #a00000;
-}
-</style>
