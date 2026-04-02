@@ -13,8 +13,14 @@
               @click="router.push(`/forum/${forum.id}`)"
             >
               <div class="forum-icon">
-                <img v-if="forum.icon && (forum.icon.startsWith('/') || forum.icon.startsWith('http'))" :src="forum.icon" :alt="forum.name" class="forum-icon-img" />
-                <span v-else>{{ forum.icon || forum.name.charAt(0) }}</span>
+                <img
+                  v-if="forum.icon && (forum.icon.startsWith('/') || forum.icon.startsWith('http')) && !iconErrors[forum.id]"
+                  :src="forum.icon"
+                  :alt="forum.name"
+                  class="forum-icon-img"
+                  @error="iconErrors[forum.id] = true"
+                />
+                <span v-else>{{ forum.name.charAt(0) }}</span>
               </div>
               <div class="forum-info">
                 <div class="forum-name">{{ forum.name }}</div>
@@ -41,6 +47,7 @@ import type { Forum } from '@/types/api'
 const router = useRouter()
 const forums = ref<Forum[]>([])
 const loading = ref(false)
+const iconErrors = ref<Record<number, boolean>>({})
 
 onMounted(async () => {
   loading.value = true
