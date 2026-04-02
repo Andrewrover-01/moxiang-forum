@@ -1,106 +1,165 @@
 <template>
-  <div class="home-container">
-    <el-container>
-      <el-header class="site-header">
-        <div class="header-left">
-          <span class="site-title">墨香论坛</span>
-        </div>
-        <div class="header-right">
-          <template v-if="userStore.isLoggedIn">
-            <span class="username">{{ userStore.userInfo?.username }}</span>
-            <el-button text @click="handleLogout">退出登录</el-button>
-          </template>
-          <template v-else>
-            <el-button @click="router.push('/login')">登录</el-button>
-            <el-button type="primary" @click="router.push('/register')">注册</el-button>
-          </template>
-        </div>
-      </el-header>
+  <div class="home-page">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-inner">
+        <h1 class="hero-title">墨香论坛</h1>
+        <p class="hero-subtitle">以文会友，以墨传情——汇聚四海文人，共话诗书雅趣</p>
+        <button class="btn-enter" @click="router.push('/posts')">进入论坛</button>
+      </div>
+    </section>
 
-      <el-main>
-        <el-row :gutter="20">
-          <el-col :span="16">
-            <el-card class="forum-list-card">
-              <template #header>
-                <span>版块列表</span>
-              </template>
-              <el-skeleton :loading="loading" animated :rows="4">
-                <template #default>
-                  <el-table :data="forums" style="width: 100%">
-                    <el-table-column prop="name" label="版块名称" />
-                    <el-table-column prop="description" label="简介" />
-                    <el-table-column prop="postCount" label="帖子数" width="100" />
-                    <el-table-column label="操作" width="100">
-                      <template #default="{ row }">
-                        <el-button text type="primary" @click="router.push(`/forum/${row.id}`)">
-                          进入
-                        </el-button>
-                      </template>
-                    </el-table-column>
-                  </el-table>
-                </template>
-              </el-skeleton>
-            </el-card>
-          </el-col>
-        </el-row>
-      </el-main>
-    </el-container>
+    <!-- Stats -->
+    <section class="stats-section">
+      <div class="stats-inner">
+        <div class="stat-card">
+          <div class="stat-value">{{ totalPosts !== null ? totalPosts.toLocaleString() : '—' }}</div>
+          <div class="stat-label">总帖子数</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-card">
+          <div class="stat-value">{{ forumCount !== null ? forumCount : '—' }}</div>
+          <div class="stat-label">版块数</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-card">
+          <div class="stat-value">{{ memberCount.toLocaleString() }}</div>
+          <div class="stat-label">总会员数</div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { useUserStore } from '@/store/user'
 import { getForumList } from '@/api/forum'
-import { logout } from '@/api/user'
-import type { Forum } from '@/types/api'
+import { getPostList } from '@/api/post'
 
 const router = useRouter()
-const userStore = useUserStore()
-const forums = ref<Forum[]>([])
-const loading = ref(false)
+
+const totalPosts = ref<number | null>(null)
+const forumCount = ref<number | null>(null)
+const memberCount = ref<number>(1024)
 
 onMounted(async () => {
-  loading.value = true
   try {
-    const { data } = await getForumList()
-    forums.value = data.data
-  } finally {
-    loading.value = false
+    const [postsRes, forumsRes] = await Promise.allSettled([
+      getPostList({ current: 1, size: 1 }),
+      getForumList()
+    ])
+
+    if (postsRes.status === 'fulfilled') {
+      totalPosts.value = postsRes.value.data.data.total
+    }
+    if (forumsRes.status === 'fulfilled') {
+      forumCount.value = forumsRes.value.data.data.length
+    }
+  } catch {
+    // 静默处理，数据显示 —
   }
 })
-
-async function handleLogout() {
-  try {
-    await logout()
-  } catch {
-    // 无论后端是否响应，本地都清除登录状态
-  }
-  userStore.clearToken()
-  ElMessage.success('已退出登录')
-  router.push('/login')
-}
 </script>
 
 <style scoped>
-.site-header {
+.home-page {
+  flex: 1;
+}
+
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, #8B0000 0%, #5c0000 100%);
+  color: #FAF7F0;
+  padding: 80px 24px;
+  text-align: center;
+}
+
+.hero-inner {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: bold;
+  letter-spacing: 6px;
+  margin: 0 0 16px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.hero-subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  letter-spacing: 2px;
+  opacity: 0.9;
+  margin: 0 0 40px;
+  line-height: 1.8;
+}
+
+.btn-enter {
+  display: inline-block;
+  background: #FAF7F0;
+  color: #8B0000;
+  border: none;
+  padding: 12px 40px;
+  font-size: 16px;
+  font-family: inherit;
+  letter-spacing: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn-enter:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-enter:active {
+  transform: translateY(0);
+}
+
+/* Stats */
+.stats-section {
+  background: #ffffff;
+  border-bottom: 1px solid #e8e0d5;
+}
+
+.stats-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #eee;
+  justify-content: center;
 }
-.site-title {
-  font-size: 20px;
+
+.stat-card {
+  flex: 1;
+  text-align: center;
+  padding: 32px 24px;
+}
+
+.stat-value {
+  font-size: 2rem;
   font-weight: bold;
-  color: #409eff;
+  color: #8B0000;
+  letter-spacing: 1px;
+  line-height: 1.2;
 }
-.username {
-  margin-right: 12px;
-  color: #606266;
+
+.stat-label {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #7a6a5a;
+  letter-spacing: 2px;
 }
-.home-container {
-  min-height: 100vh;
+
+.stat-divider {
+  width: 1px;
+  height: 48px;
+  background: #e8e0d5;
+  flex-shrink: 0;
 }
 </style>
