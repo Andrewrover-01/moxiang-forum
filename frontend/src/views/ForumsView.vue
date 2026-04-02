@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getForumList } from '@/api/forum'
 import type { Forum } from '@/types/api'
@@ -47,7 +47,7 @@ import type { Forum } from '@/types/api'
 const router = useRouter()
 const forums = ref<Forum[]>([])
 const loading = ref(false)
-const iconErrors = ref<Record<number, boolean>>({})
+const iconErrors = reactive<Record<number, boolean>>({})
 
 onMounted(async () => {
   loading.value = true
