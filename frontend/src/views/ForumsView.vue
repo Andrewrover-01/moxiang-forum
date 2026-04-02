@@ -12,15 +12,13 @@
               class="forum-item"
               @click="router.push(`/forum/${forum.id}`)"
             >
-              <div class="forum-icon">
-                <img
-                  v-if="forum.icon && (forum.icon.startsWith('/') || forum.icon.startsWith('http')) && !iconErrors[forum.id]"
-                  :src="forum.icon"
-                  :alt="forum.name"
-                  class="forum-icon-img"
-                  @error="iconErrors[forum.id] = true"
+              <div class="forum-icon" :style="{ background: getIconBg(forum.name) }">
+                <component
+                  :is="getForumIcon(forum.name)"
+                  :size="28"
+                  :color="getIconColor(forum.name)"
+                  :stroke-width="1.8"
                 />
-                <span v-else>{{ forum.name.charAt(0) }}</span>
               </div>
               <div class="forum-info">
                 <div class="forum-name">{{ forum.name }}</div>
@@ -39,15 +37,48 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getForumList } from '@/api/forum'
 import type { Forum } from '@/types/api'
+import {
+  MessageSquare,
+  Sparkles,
+  Heart,
+  Sword,
+  Rocket,
+  BookOpen,
+  LayoutDashboard,
+  type LucideIcon
+} from 'lucide-vue-next'
 
 const router = useRouter()
 const forums = ref<Forum[]>([])
 const loading = ref(false)
-const iconErrors = reactive<Record<number, boolean>>({})
+
+type ForumIconConfig = { icon: LucideIcon; color: string; bg: string }
+
+const forumIconMap: Record<string, ForumIconConfig> = {
+  '综合讨论': { icon: MessageSquare, color: '#8B0000', bg: '#FDF0F0' },
+  '玄幻奇幻': { icon: Sparkles,      color: '#6B21A8', bg: '#F5F0FF' },
+  '都市言情': { icon: Heart,         color: '#BE185D', bg: '#FFF0F6' },
+  '武侠历史': { icon: Sword,         color: '#92400E', bg: '#FFF7ED' },
+  '科幻末世': { icon: Rocket,        color: '#1D4ED8', bg: '#EFF6FF' },
+  '新书推荐': { icon: BookOpen,      color: '#065F46', bg: '#ECFDF5' },
+}
+
+const defaultConfig: ForumIconConfig = { icon: LayoutDashboard, color: '#8B0000', bg: '#FAF7F0' }
+
+function getForumConfig(name: string): ForumIconConfig {
+  for (const key of Object.keys(forumIconMap)) {
+    if (name.includes(key)) return forumIconMap[key]
+  }
+  return defaultConfig
+}
+
+function getForumIcon(name: string): LucideIcon { return getForumConfig(name).icon }
+function getIconColor(name: string): string     { return getForumConfig(name).color }
+function getIconBg(name: string): string        { return getForumConfig(name).bg }
 
 onMounted(async () => {
   loading.value = true
@@ -115,22 +146,11 @@ onMounted(async () => {
 .forum-icon {
   width: 48px;
   height: 48px;
-  background: #FAF7F0;
-  border: 1px solid #e8e0d5;
-  border-radius: 6px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  color: #8B0000;
   flex-shrink: 0;
-  overflow: hidden;
-}
-
-.forum-icon-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .forum-info {
