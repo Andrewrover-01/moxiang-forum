@@ -80,9 +80,7 @@ services:
   # ─────────────────────────────── Frontend ──────────────────────────────
   frontend:
     build:
-      # Root as context so Dockerfile can reach both frontend/ and nginx.conf
-      context: .
-      dockerfile: frontend/Dockerfile
+      context: ./frontend
     restart: unless-stopped
     ports:
       - "${APP_PORT:-80}:80"

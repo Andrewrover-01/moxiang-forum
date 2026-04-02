@@ -1,86 +1,32 @@
-/**
- * Post API module — wraps all /api/post/* endpoints.
- */
-import http from './http'
-import type { PageResult, Post } from './types'
+import request from '@/utils/request'
+import type { ApiResponse, Post, PageResult } from '@/types/api'
 
-/** Create a new post. */
-export function createPost(
-  forumId: number,
-  title: string,
-  content: string,
-  tagIds?: number[]
-): Promise<Post> {
-  return http
-    .post<{ data: Post }>('/post', { forumId, title, content, tagIds })
-    .then((res) => res.data.data)
+/** 帖子列表（公开，支持按版块过滤） */
+export function getPostList(params: { forumId?: number; current?: number; size?: number } = {}) {
+  return request.get<ApiResponse<PageResult<Post>>>('/post/list', { params })
 }
 
-/** Fetch a single post by id (also increments view count server-side). */
-export function getPost(id: number | string): Promise<Post> {
-  return http.get<{ data: Post }>(`/post/${id}`).then((res) => res.data.data)
+/** 获取帖子详情 */
+export function getPostById(id: number) {
+  return request.get<ApiResponse<Post>>(`/post/${id}`)
 }
 
-/** Paginated post list, optionally filtered by forum. */
-export function listPosts(
-  forumId?: number,
-  current = 1,
-  size = 20
-): Promise<PageResult<Post>> {
-  return http
-    .get<{ data: PageResult<Post> }>('/post/list', { params: { forumId, current, size } })
-    .then((res) => res.data.data)
+/** 发布帖子（需要登录） */
+export function createPost(data: { forumId: number; title: string; content: string }) {
+  return request.post<ApiResponse<Post>>('/post', data)
 }
 
-/** Posts authored by a specific user (paginated). */
-export function listUserPosts(
-  userId: number | string,
-  current = 1,
-  size = 20
-): Promise<PageResult<Post>> {
-  return http
-    .get<{ data: PageResult<Post> }>(`/post/user/${userId}`, { params: { current, size } })
-    .then((res) => res.data.data)
+/** 更新帖子（需要登录） */
+export function updatePost(id: number, data: { title?: string; content?: string }) {
+  return request.put<ApiResponse<Post>>(`/post/${id}`, data)
 }
 
-/** Full-text search over posts (paginated). */
-export function searchPosts(
-  keyword: string,
-  current = 1,
-  size = 20
-): Promise<PageResult<Post>> {
-  return http
-    .get<{ data: PageResult<Post> }>('/post/search', { params: { keyword, current, size } })
-    .then((res) => res.data.data)
+/** 删除帖子（需要登录） */
+export function deletePost(id: number) {
+  return request.delete<ApiResponse<null>>(`/post/${id}`)
 }
 
-/** Fetch the top N hot posts. */
-export function hotPosts(limit = 10): Promise<Post[]> {
-  return http
-    .get<{ data: Post[] }>('/post/hot', { params: { limit } })
-    .then((res) => res.data.data)
-}
-
-/** Update a post's title and/or content. */
-export function updatePost(id: number | string, title: string, content: string): Promise<void> {
-  return http.put(`/post/${id}`, { title, content }).then(() => undefined)
-}
-
-/** Delete a post (soft-delete). */
-export function deletePost(id: number | string): Promise<void> {
-  return http.delete(`/post/${id}`).then(() => undefined)
-}
-
-/** Toggle like on a post; returns whether the post is now liked. */
-export function togglePostLike(id: number | string): Promise<{ liked: boolean }> {
-  return http
-    .post<{ data: { liked: boolean } }>(`/post/${id}/like`)
-    .then((res) => res.data.data)
-}
-
-/** Check whether the current user has liked a post. */
-export function getPostLikeStatus(id: number | string): Promise<{ liked: boolean }> {
-  return http
-    .get<{ data: { liked: boolean } }>(`/post/${id}/like/status`)
-    .then((res) => res.data.data)
+/** 点赞帖子（需要登录） */
+export function likePost(id: number) {
+  return request.post<ApiResponse<null>>(`/post/${id}/like`)
 }

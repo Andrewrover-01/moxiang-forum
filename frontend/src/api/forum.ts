@@ -1,22 +1,12 @@
-/**
- * Forum API module — wraps all /api/forum/* endpoints.
- */
-import http from './http'
-import type { Forum, PageResult } from './types'
+import request from '@/utils/request'
+import type { ApiResponse, Forum } from '@/types/api'
 
-/** Fetch the full (non-paginated) forum list. */
-export function listForums(): Promise<Forum[]> {
-  return http.get<{ data: Forum[] }>('/forum/list').then((res) => res.data.data)
+/** 获取全部版块列表（公开） */
+export function getForumList() {
+  return request.get<ApiResponse<Forum[]>>('/forum/list')
 }
 
-/** Fetch a single forum by id. */
-export function getForum(id: number | string): Promise<Forum> {
-  return http.get<{ data: Forum }>(`/forum/${id}`).then((res) => res.data.data)
-}
-
-/** Paginated forum list. */
-export function pageForums(current = 1, size = 20): Promise<PageResult<Forum>> {
-  return http
-    .get<{ data: PageResult<Forum> }>('/forum/page', { params: { current, size } })
-    .then((res) => res.data.data)
+/** 获取单个版块详情（公开） */
+export function getForumById(id: number) {
+  return request.get<ApiResponse<Forum>>(`/forum/${id}`)
 }

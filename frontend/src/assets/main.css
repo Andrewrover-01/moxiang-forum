@@ -1,68 +1,50 @@
-/* ============================================================
-   墨香论坛 — 墨香古风全局主题 CSS
-   Global design variables and base overrides
-   ============================================================ */
+/* =====================================================
+ * 墨香论坛 — 全局样式
+ * 新中式极简：背景 #FAF7F0，主色 #8B0000，衬线字体
+ * ===================================================== */
 
-/* ── 全局 CSS 变量 ─────────────────────────────────────────── */
+/* CSS 自定义变量 */
 :root {
-  /* 主色调 */
-  --mx-primary:        #8B0000;
-  --mx-primary-hover:  #a50000;
-  --mx-primary-light:  #f5e0e0;
-
-  /* 背景色 */
-  --mx-bg-page:        #FAF7F0;
-  --mx-bg-card:        #FFFFFF;
-  --mx-bg-header:      #FAF7F0;
-
-  /* 文字色 */
-  --mx-text-primary:   #333333;
-  --mx-text-secondary: #666666;
-  --mx-text-muted:     #999999;
-
-  /* 边框 */
-  --mx-border:         #e0d5c5;
-  --mx-border-light:   #f0e8da;
-
-  /* 字体 */
-  --mx-font-serif: "Source Han Serif CN", "Noto Serif SC", "STSong",
-                   "SimSun", Georgia, "Times New Roman", serif;
-
-  /* 圆角 */
-  --mx-radius-sm:  4px;
-  --mx-radius:     8px;
-
-  /* 阴影 */
-  --mx-shadow-card: 0 4px 12px rgba(0, 0, 0, 0.05);
-  --mx-shadow-nav:  0 2px 8px rgba(0, 0, 0, 0.06);
+  --color-bg: #FAF7F0;
+  --color-primary: #8B0000;
+  --color-primary-hover: #a00000;
+  --color-card: #ffffff;
+  --color-text: #2c1a0e;
+  --color-text-muted: #7a6a5a;
+  --color-border: #e8e0d5;
+  --font-serif: "Source Han Serif CN", "SimSun", serif;
+  --header-height: 64px;
+  --content-width: 1200px;
 }
 
-/* ── 全局背景与字体 ────────────────────────────────────────── */
+/* Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body {
-  background-color: var(--mx-bg-page) !important;
-  font-family: var(--mx-font-serif);
-  color: var(--mx-text-primary);
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg);
+  font-family: var(--font-serif);
+  color: var(--color-text);
+  min-height: 100vh;
 }
 
-/* ── Element Plus 主题色覆盖 ───────────────────────────────── */
-:root {
-  --el-color-primary:         #8B0000;
-  --el-color-primary-light-3: #a83232;
-  --el-color-primary-light-5: #c05050;
-  --el-color-primary-light-7: #d88080;
-  --el-color-primary-light-8: #e4a0a0;
-  --el-color-primary-light-9: #f0d0d0;
-  --el-color-primary-dark-2:  #6e0000;
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  --el-bg-color-page:    #FAF7F0;
-  --el-bg-color:         #FFFFFF;
-  --el-bg-color-overlay: #FFFFFF;
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
 
-  --el-border-color:       #e0d5c5;
-  --el-border-color-light: #f0e8da;
-
-  --el-text-color-primary:   #333333;
-  --el-text-color-regular:   #666666;
-  --el-text-color-secondary: #999999;
+a:hover {
+  color: var(--color-primary-hover);
 }

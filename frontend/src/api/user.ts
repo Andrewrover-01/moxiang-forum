@@ -1,59 +1,44 @@
-/**
- * User API module — wraps all /api/user/* endpoints.
- */
-import http from './http'
-import type { PageResult, UserInfo } from './types'
+import request from '@/utils/request'
+import type { ApiResponse, LoginResult, User, PageResult } from '@/types/api'
 
-/** Login and receive a JWT token. */
-export function login(username: string, password: string): Promise<{ token: string }> {
-  return http
-    .post<{ data: { token: string } }>('/user/login', { username, password })
-    .then((res) => res.data.data)
+/** 登录 */
+export function login(username: string, password: string) {
+  return request.post<ApiResponse<LoginResult>>('/user/login', { username, password })
 }
 
-/** Register a new user account. */
-export function register(
-  username: string,
-  password: string,
-  email: string
-): Promise<UserInfo> {
-  return http
-    .post<{ data: UserInfo }>('/user/register', { username, password, email })
-    .then((res) => res.data.data)
+/** 注册 */
+export function register(username: string, password: string, email: string) {
+  return request.post<ApiResponse<User>>('/user/register', { username, password, email })
 }
 
-/** Notify the backend to blacklist the current token. */
-export function logout(): Promise<void> {
-  return http.post('/user/logout').then(() => undefined)
+/** 退出登录 */
+export function logout() {
+  return request.post<ApiResponse<null>>('/user/logout')
 }
 
-/** Fetch the currently authenticated user's full profile. */
-export function getUserInfo(): Promise<UserInfo> {
-  return http.get<{ data: UserInfo }>('/user/info').then((res) => res.data.data)
+/** 获取当前登录用户信息 */
+export function getUserInfo() {
+  return request.get<ApiResponse<User>>('/user/info')
 }
 
-/** Fetch a public user profile by id (email is stripped server-side). */
-export function getUser(id: number | string): Promise<UserInfo> {
-  return http.get<{ data: UserInfo }>(`/user/${id}`).then((res) => res.data.data)
+/** 获取指定用户公开信息 */
+export function getUserById(id: number) {
+  return request.get<ApiResponse<User>>(`/user/${id}`)
 }
 
-/** Update avatar and/or bio for the current user. */
-export function updateProfile(avatar: string, bio: string): Promise<void> {
-  return http.put('/user/profile', { avatar, bio }).then(() => undefined)
+/** 更新个人资料 */
+export function updateProfile(avatar: string, bio: string) {
+  return request.put<ApiResponse<null>>('/user/profile', { avatar, bio })
 }
 
-/** Change the current user's password. */
-export function changePassword(oldPassword: string, newPassword: string): Promise<void> {
-  return http.put('/user/password', { oldPassword, newPassword }).then(() => undefined)
+/** 修改密码 */
+export function changePassword(oldPassword: string, newPassword: string) {
+  return request.put<ApiResponse<null>>('/user/password', { oldPassword, newPassword })
 }
 
-/** Paginated user list (admin use). */
-export function listUsers(
-  current = 1,
-  size = 20,
-  keyword?: string
-): Promise<PageResult<UserInfo>> {
-  return http
-    .get<{ data: PageResult<UserInfo> }>('/user/list', { params: { current, size, keyword } })
-    .then((res) => res.data.data)
+/** 用户列表（需要登录） */
+export function getUserList(current = 1, size = 20, keyword?: string) {
+  return request.get<ApiResponse<PageResult<User>>>('/user/list', {
+    params: { current, size, keyword }
+  })
 }

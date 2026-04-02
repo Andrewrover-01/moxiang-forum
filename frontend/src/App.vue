@@ -1,79 +1,33 @@
 <template>
-  <el-config-provider :locale="zhCn">
-    <el-container class="app-wrapper">
-      <AppHeader />
-
-      <!-- Main content -->
-      <el-main class="app-main">
-        <router-view v-slot="{ Component }">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
-      </el-main>
-
-      <AppFooter />
-    </el-container>
+  <el-config-provider>
+    <MainLayout>
+      <router-view />
+    </MainLayout>
   </el-config-provider>
 </template>
 
 <script setup lang="ts">
-import zhCn from 'element-plus/es/locale/lang/zh-cn'
-import AppHeader from '@/components/layout/AppHeader.vue'
-import AppFooter from '@/components/layout/AppFooter.vue'
+import { onMounted } from 'vue'
+import { getUserInfo } from '@/api/user'
+import { useUserStore } from '@/store/user'
+import MainLayout from '@/layouts/MainLayout.vue'
+
+const userStore = useUserStore()
+
+/** 应用启动时若已有 token，刷新用户信息 */
+onMounted(async () => {
+  if (userStore.isLoggedIn) {
+    try {
+      const { data } = await getUserInfo()
+      userStore.setUserInfo({
+        id: data.data.id,
+        username: data.data.username,
+        avatar: data.data.avatar,
+        role: data.data.role
+      })
+    } catch {
+      // token 已失效，清除登录状态（request 拦截器会处理 401）
+    }
+  }
+})
 </script>
-
-<style scoped>
-.app-wrapper {
-  min-height: 100vh;
-  background-color: var(--mx-bg-page, #FAF7F0);
-}
-
-.app-main {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 24px 12px;
-  box-sizing: border-box;
-}
-
-/* Page transition */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.15s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-</style>
-
-<style>
-/* Global resets */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: var(--mx-font-serif, "Source Han Serif CN", "SimSun", Georgia, serif);
-  background-color: var(--mx-bg-page, #FAF7F0);
-  color: var(--mx-text-primary, #333333);
-  line-height: 1.6;
-}
-
-a {
-  color: var(--theme-link, #8B0000);
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-.el-main {
-  padding: 0 !important;
-}
-</style>
