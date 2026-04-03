@@ -10,6 +10,7 @@ import com.moxiang.mbg.entity.Post;
 import com.moxiang.mbg.mapper.CommentMapper;
 import com.moxiang.mbg.mapper.PostMapper;
 import com.moxiang.service.moderation.ContentModerationService;
+import com.moxiang.service.moderation.FilterMode;
 import com.moxiang.service.moderation.MachineReviewResult;
 import com.moxiang.service.moderation.SensitiveWordFilter;
 import org.slf4j.Logger;
@@ -64,10 +65,14 @@ public class ContentModerationServiceImpl implements ContentModerationService {
     @Override
     public MachineReviewResult machineReview(ContentType type, Long contentId, Long authorId,
                                              String... texts) {
+        // Novel chapters use STRICT mode (novel-industry word library active)
+        FilterMode mode = (type == ContentType.NOVEL_CHAPTER) ? FilterMode.STRICT : FilterMode.NORMAL;
+
         for (String text : texts) {
-            MachineReviewResult result = sensitiveWordFilter.check(text);
+            MachineReviewResult result = sensitiveWordFilter.checkWithMode(text, mode);
             if (!result.isClean()) {
-                log.warn("Machine review flagged {} id={}: {}", type, contentId, result.getReason());
+                log.warn("Machine review flagged {} id={} [mode={}]: {}",
+                        type, contentId, mode, result.getReason());
                 // Hide the content immediately
                 hideContent(type, contentId);
                 // Submit to manual review queue

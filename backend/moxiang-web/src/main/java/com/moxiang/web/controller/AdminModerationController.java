@@ -123,10 +123,10 @@ public class AdminModerationController {
         return CommonResult.success();
     }
 
-    // ---- Sensitive keywords ----
+    // ---- Sensitive keywords — general library ----
 
     /**
-     * Returns the list of all active sensitive keywords.
+     * Returns the list of all active custom keywords in the general library.
      */
     @GetMapping("/keywords")
     public CommonResult<Set<Object>> listKeywords() {
@@ -134,7 +134,7 @@ public class AdminModerationController {
     }
 
     /**
-     * Adds a sensitive keyword.
+     * Adds a custom keyword to the general library.
      * Request body: {@code { "keyword": "..." }}
      */
     @PostMapping("/keywords")
@@ -148,11 +148,54 @@ public class AdminModerationController {
     }
 
     /**
-     * Removes a sensitive keyword.
+     * Removes a keyword from the general library.
      */
     @DeleteMapping("/keywords/{keyword}")
     public CommonResult<Void> removeKeyword(@PathVariable String keyword) {
         sensitiveWordFilter.removeKeyword(keyword);
+        return CommonResult.success();
+    }
+
+    // ---- Sensitive keywords — novel library (STRICT mode only) ----
+
+    /**
+     * Returns all active custom keywords in the novel-specific library.
+     */
+    @GetMapping("/keywords/novel")
+    public CommonResult<Set<Object>> listNovelKeywords() {
+        return CommonResult.success(sensitiveWordFilter.listNovelKeywords());
+    }
+
+    /**
+     * Adds a keyword to the novel-specific library.
+     * Request body: {@code { "keyword": "..." }}
+     */
+    @PostMapping("/keywords/novel")
+    public CommonResult<Void> addNovelKeyword(@RequestBody Map<String, String> body) {
+        String keyword = body.get("keyword");
+        if (keyword == null || keyword.isBlank()) {
+            return CommonResult.validateFailed("keyword不能为空");
+        }
+        sensitiveWordFilter.addNovelKeyword(keyword.trim());
+        return CommonResult.success();
+    }
+
+    /**
+     * Removes a keyword from the novel-specific library.
+     */
+    @DeleteMapping("/keywords/novel/{keyword}")
+    public CommonResult<Void> removeNovelKeyword(@PathVariable String keyword) {
+        sensitiveWordFilter.removeNovelKeyword(keyword);
+        return CommonResult.success();
+    }
+
+    /**
+     * Forces an immediate Trie rebuild from the current Redis keyword state.
+     * Useful after bulk imports via direct Redis manipulation.
+     */
+    @PostMapping("/keywords/refresh")
+    public CommonResult<Void> refreshKeywords() {
+        sensitiveWordFilter.refreshTries();
         return CommonResult.success();
     }
 

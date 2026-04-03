@@ -33,8 +33,11 @@ public final class ModerationConstants {
 
     // ---- Keywords ----
 
-    /** Redis Set containing all active sensitive keyword entries. */
+    /** Redis Set containing all active custom sensitive keywords (admin-added). */
     public static final String MOD_KEYWORDS_KEY = "mod:keywords";
+
+    /** Redis Set containing admin-added novel-industry specific keywords. */
+    public static final String MOD_KEYWORDS_NOVEL_KEY = "mod:keywords:novel";
 
     // ---- Reports ----
 
