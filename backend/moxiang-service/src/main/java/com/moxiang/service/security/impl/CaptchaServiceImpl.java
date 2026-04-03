@@ -2,7 +2,6 @@ package com.moxiang.service.security.impl;
 
 import com.moxiang.common.constant.CaptchaConstants;
 import com.moxiang.common.constant.RateLimitConstants;
-import com.moxiang.common.constant.RateLimitConstants;
 import com.moxiang.common.exception.CaptchaException;
 import com.moxiang.common.utils.RedisUtils;
 import com.moxiang.service.security.BlacklistService;
