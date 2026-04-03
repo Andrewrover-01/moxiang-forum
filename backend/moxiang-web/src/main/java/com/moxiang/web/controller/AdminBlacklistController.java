@@ -1,6 +1,7 @@
 package com.moxiang.web.controller;
 
 import com.moxiang.common.api.CommonResult;
+import com.moxiang.common.exception.BusinessException;
 import com.moxiang.service.security.BlacklistService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -114,6 +115,10 @@ public class AdminBlacklistController {
     private static Long toLong(Object value) {
         if (value == null) return 0L;
         if (value instanceof Number) return ((Number) value).longValue();
-        return Long.parseLong(value.toString());
+        try {
+            return Long.parseLong(value.toString());
+        } catch (NumberFormatException e) {
+            throw new BusinessException("参数格式错误，期望数字类型");
+        }
     }
 }

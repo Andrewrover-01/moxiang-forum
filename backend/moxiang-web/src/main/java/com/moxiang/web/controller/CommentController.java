@@ -35,7 +35,7 @@ public class CommentController {
                limit = RateLimitConstants.COMMENT_CREATE_LIMIT,
                period = 3600L,
                limitBy = RateLimitType.USER,
-               message = "评论过于频繁，每小时最多评论 " + RateLimitConstants.COMMENT_CREATE_LIMIT + " 次")
+               message = "评论过于频繁，每小时最多评论30次")
     public CommonResult<Comment> createComment(@Valid @RequestBody CommentCreateDTO dto) {
         Long userId = getCurrentUserId();
         Comment comment = commentService.createComment(
@@ -71,7 +71,7 @@ public class CommentController {
                limit = RateLimitConstants.COMMENT_LIKE_LIMIT,
                period = 86400L,
                limitBy = RateLimitType.USER,
-               message = "点赞过于频繁，每天最多点赞 " + RateLimitConstants.COMMENT_LIKE_LIMIT + " 次")
+               message = "点赞过于频繁，每天最多点赞100次")
     public CommonResult<Map<String, Boolean>> toggleLike(@PathVariable Long id) {
         Long userId = getCurrentUserId();
         boolean liked = commentService.toggleLike(id, userId);

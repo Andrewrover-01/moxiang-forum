@@ -41,7 +41,7 @@ public class PostController {
                limit = RateLimitConstants.POST_CREATE_LIMIT,
                period = 3600L,
                limitBy = RateLimitType.USER,
-               message = "发帖过于频繁，每小时最多发 " + RateLimitConstants.POST_CREATE_LIMIT + " 篇帖子")
+               message = "发帖过于频繁，每小时最多发10篇帖子")
     public CommonResult<Post> createPost(@Valid @RequestBody PostCreateDTO dto) {
         Long userId = getCurrentUserId();
         Post post = postService.createPost(userId, dto.getForumId(), dto.getTitle(),
@@ -112,7 +112,7 @@ public class PostController {
                limit = RateLimitConstants.POST_LIKE_LIMIT,
                period = 86400L,
                limitBy = RateLimitType.USER,
-               message = "点赞过于频繁，每天最多点赞 " + RateLimitConstants.POST_LIKE_LIMIT + " 次")
+               message = "点赞过于频繁，每天最多点赞100次")
     public CommonResult<Map<String, Boolean>> toggleLike(@PathVariable Long id) {
         Long userId = getCurrentUserId();
         boolean liked = postService.toggleLike(id, userId);

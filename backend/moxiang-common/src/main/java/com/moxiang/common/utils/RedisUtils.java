@@ -123,15 +123,30 @@ public class RedisUtils {
         redisTemplate.opsForHash().delete(key, hashKeys);
     }
 
-    // ---- Key scan (admin use only — avoid on large keyspaces) ----
+    // ---- Key scan (admin use only) ----
 
     /**
-     * Returns all Redis keys matching the given pattern.
-     * Use this only in low-traffic admin scenarios; prefer SCAN in large deployments.
+     * Returns all Redis keys matching the given pattern using a non-blocking SCAN cursor.
+     * Safe to use in production as it does not block the Redis server.
      */
     public Set<String> keys(String pattern) {
-        Set<String> raw = redisTemplate.keys(pattern);
-        return raw == null ? Set.of() : raw;
+        Set<String> result = new java.util.HashSet<>();
+        redisTemplate.execute((org.springframework.data.redis.core.RedisCallback<Void>) connection -> {
+            org.springframework.data.redis.core.Cursor<byte[]> cursor =
+                    connection.keyCommands().scan(
+                            org.springframework.data.redis.core.ScanOptions.scanOptions()
+                                    .match(pattern)
+                                    .count(200)
+                                    .build());
+            while (cursor.hasNext()) {
+                byte[] keyBytes = cursor.next();
+                if (keyBytes != null) {
+                    result.add(new String(keyBytes, java.nio.charset.StandardCharsets.UTF_8));
+                }
+            }
+            return null;
+        });
+        return result;
     }
 
     // ---- List ops ----
