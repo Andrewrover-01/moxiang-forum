@@ -105,6 +105,11 @@ public class RedisUtils {
         return redisTemplate.opsForZSet().reverseRangeByScore(key, min, max, offset, count);
     }
 
+    public long zsetRemove(String key, Object... values) {
+        Long count = redisTemplate.opsForZSet().remove(key, values);
+        return count == null ? 0 : count;
+    }
+
     // ---- Hash ops ----
 
     public void hashPut(String key, String hashKey, Object value) {

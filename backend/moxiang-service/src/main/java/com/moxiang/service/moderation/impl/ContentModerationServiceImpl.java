@@ -100,15 +100,10 @@ public class ContentModerationServiceImpl implements ContentModerationService {
 
     @Override
     public void approve(ContentType type, Long contentId, Long reviewerId, String reason) {
-        // Remove from pending queue
-        String queueKey = ModerationConstants.MOD_QUEUE_PREFIX + type.name();
-        redisUtils.zsetAdd(queueKey, String.valueOf(contentId), -1);   // mark as processed by removing
-        redisUtils.setRemove(queueKey, String.valueOf(contentId));
-
         // Restore content visibility
         restoreContent(type, contentId);
 
-        // Record the decision
+        // Record the decision (also removes from queue)
         saveReviewRecord(type, contentId, reviewerId, ModerationConstants.DECISION_APPROVED,
                 ModerationConstants.REVIEW_MANUAL, reason);
 
@@ -117,11 +112,7 @@ public class ContentModerationServiceImpl implements ContentModerationService {
 
     @Override
     public void reject(ContentType type, Long contentId, Long reviewerId, String reason) {
-        // Remove from pending queue (keep content hidden)
-        String queueKey = ModerationConstants.MOD_QUEUE_PREFIX + type.name();
-        redisUtils.setRemove(queueKey, String.valueOf(contentId));
-
-        // Record the decision
+        // Record the decision (keeps content hidden, removes from queue)
         saveReviewRecord(type, contentId, reviewerId, ModerationConstants.DECISION_REJECTED,
                 ModerationConstants.REVIEW_MANUAL, reason);
 
@@ -265,9 +256,9 @@ public class ContentModerationServiceImpl implements ContentModerationService {
 
         // Clean up flagged metadata
         redisUtils.delete(ModerationConstants.MOD_FLAGGED_PREFIX + type.name() + ":" + contentId);
-        // Remove from pending queue
+        // Remove from pending queue (ZSet)
         String queueKey = ModerationConstants.MOD_QUEUE_PREFIX + type.name();
-        redisUtils.setRemove(queueKey, String.valueOf(contentId));
+        redisUtils.zsetRemove(queueKey, String.valueOf(contentId));
     }
 
     @SuppressWarnings("unchecked")
