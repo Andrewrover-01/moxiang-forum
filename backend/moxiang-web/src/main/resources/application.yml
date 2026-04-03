@@ -37,3 +37,4 @@ logging:
   level:
     com.moxiang: DEBUG
     org.springframework.security: INFO
+    SECURITY_AUDIT: INFO

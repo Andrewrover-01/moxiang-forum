@@ -8,10 +8,13 @@ import com.moxiang.common.api.CommonResult;
 import com.moxiang.common.constant.RateLimitConstants;
 import com.moxiang.common.exception.BusinessException;
 import com.moxiang.common.api.ResultCode;
+import com.moxiang.common.security.SecurityAuditLogger;
+import com.moxiang.common.utils.WebUtils;
 import com.moxiang.mbg.entity.User;
 import com.moxiang.service.user.UserService;
 import com.moxiang.web.dto.LoginRequest;
 import com.moxiang.web.dto.RegisterRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,9 +30,11 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final SecurityAuditLogger auditLogger;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, SecurityAuditLogger auditLogger) {
         this.userService = userService;
+        this.auditLogger = auditLogger;
     }
 
     @PostMapping("/register")
@@ -39,16 +44,27 @@ public class UserController {
                limitBy = RateLimitType.IP,
                message = "注册请求过于频繁，请稍后再试")
     @RequireCaptcha(scene = "REGISTER")
-    public CommonResult<User> register(@Valid @RequestBody RegisterRequest req) {
+    public CommonResult<User> register(@Valid @RequestBody RegisterRequest req,
+                                       HttpServletRequest request) {
         User user = userService.register(req.getUsername(), req.getPassword(), req.getEmail());
         user.setPassword(null); // Never return password
+        auditLogger.logRegister(WebUtils.getClientIp(request), user.getId(), user.getUsername());
         return CommonResult.success(user);
     }
 
     @PostMapping("/login")
-    public CommonResult<Map<String, String>> login(@Valid @RequestBody LoginRequest req) {
-        String token = userService.login(req.getUsername(), req.getPassword());
-        return CommonResult.success(Map.of("token", token));
+    public CommonResult<Map<String, String>> login(@Valid @RequestBody LoginRequest req,
+                                                   HttpServletRequest request) {
+        String clientIp = WebUtils.getClientIp(request);
+        try {
+            String token = userService.login(req.getUsername(), req.getPassword());
+            // Resolve userId from token for audit (best-effort)
+            auditLogger.logLoginOk(clientIp, null, req.getUsername());
+            return CommonResult.success(Map.of("token", token));
+        } catch (BusinessException e) {
+            auditLogger.logLoginFail(clientIp, req.getUsername(), e.getMessage());
+            throw e;
+        }
     }
 
     @PostMapping("/logout")
