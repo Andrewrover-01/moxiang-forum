@@ -1,8 +1,12 @@
 package com.moxiang.web.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.moxiang.common.annotation.RateLimit;
+import com.moxiang.common.annotation.RateLimitType;
+import com.moxiang.common.annotation.RequireCaptcha;
 import com.moxiang.common.api.CommonResult;
 import com.moxiang.common.api.ResultCode;
+import com.moxiang.common.constant.RateLimitConstants;
 import com.moxiang.common.exception.BusinessException;
 import com.moxiang.mbg.entity.Comment;
 import com.moxiang.service.comment.CommentService;
@@ -28,6 +32,12 @@ public class CommentController {
     }
 
     @PostMapping
+    @RateLimit(key = RateLimitConstants.RL_COMMENT_CREATE,
+               limit = RateLimitConstants.COMMENT_CREATE_LIMIT,
+               period = 3600L,
+               limitBy = RateLimitType.USER,
+               message = "评论过于频繁，每小时最多评论30次")
+    @RequireCaptcha(scene = "COMMENT")
     public CommonResult<Comment> createComment(@Valid @RequestBody CommentCreateDTO dto) {
         Long userId = getCurrentUserId();
         Comment comment = commentService.createComment(
@@ -59,6 +69,11 @@ public class CommentController {
     }
 
     @PostMapping("/{id}/like")
+    @RateLimit(key = RateLimitConstants.RL_COMMENT_LIKE,
+               limit = RateLimitConstants.COMMENT_LIKE_LIMIT,
+               period = 86400L,
+               limitBy = RateLimitType.USER,
+               message = "点赞过于频繁，每天最多点赞100次")
     public CommonResult<Map<String, Boolean>> toggleLike(@PathVariable Long id) {
         Long userId = getCurrentUserId();
         boolean liked = commentService.toggleLike(id, userId);

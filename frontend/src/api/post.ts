@@ -1,5 +1,6 @@
 import request from '@/utils/request'
 import type { ApiResponse, Post, PageResult } from '@/types/api'
+import { CAPTCHA_TOKEN_HEADER } from '@/utils/captchaHeader'
 
 /** 帖子列表（公开，支持按版块过滤） */
 export function getPostList(params: { forumId?: number; current?: number; size?: number } = {}) {
@@ -12,8 +13,10 @@ export function getPostById(id: number) {
 }
 
 /** 发布帖子（需要登录） */
-export function createPost(data: { forumId: number; title: string; content: string }) {
-  return request.post<ApiResponse<Post>>('/post', data)
+export function createPost(data: { forumId: number; title: string; content: string }, captchaToken?: string) {
+  return request.post<ApiResponse<Post>>('/post', data, {
+    headers: captchaToken ? { [CAPTCHA_TOKEN_HEADER]: captchaToken } : {}
+  })
 }
 
 /** 更新帖子（需要登录） */

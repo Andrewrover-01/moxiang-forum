@@ -1,12 +1,19 @@
 package com.moxiang.web.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.moxiang.common.annotation.RateLimit;
+import com.moxiang.common.annotation.RateLimitType;
+import com.moxiang.common.annotation.RequireCaptcha;
 import com.moxiang.common.api.CommonResult;
 import com.moxiang.common.api.ResultCode;
+import com.moxiang.common.constant.RateLimitConstants;
 import com.moxiang.common.exception.BusinessException;
+import com.moxiang.common.utils.RedisUtils;
+import com.moxiang.common.utils.WebUtils;
 import com.moxiang.mbg.entity.Post;
 import com.moxiang.service.post.PostService;
 import com.moxiang.web.dto.PostCreateDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,12 +30,20 @@ import java.util.Map;
 public class PostController {
 
     private final PostService postService;
+    private final RedisUtils redisUtils;
 
-    public PostController(PostService postService) {
+    public PostController(PostService postService, RedisUtils redisUtils) {
         this.postService = postService;
+        this.redisUtils = redisUtils;
     }
 
     @PostMapping
+    @RateLimit(key = RateLimitConstants.RL_POST_CREATE,
+               limit = RateLimitConstants.POST_CREATE_LIMIT,
+               period = 3600L,
+               limitBy = RateLimitType.USER,
+               message = "发帖过于频繁，每小时最多发10篇帖子")
+    @RequireCaptcha(scene = "POST")
     public CommonResult<Post> createPost(@Valid @RequestBody PostCreateDTO dto) {
         Long userId = getCurrentUserId();
         Post post = postService.createPost(userId, dto.getForumId(), dto.getTitle(),
@@ -37,9 +52,16 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public CommonResult<Post> getPost(@PathVariable Long id) {
+    public CommonResult<Post> getPost(@PathVariable Long id, HttpServletRequest request) {
         Post post = postService.getById(id);
-        postService.incrementViewCount(id);
+        // Deduplicate view-count increments: only count one view per IP per post per window
+        String clientIp = WebUtils.getClientIp(request);
+        String viewKey = RateLimitConstants.RL_VIEW_COUNT + id + ":" + clientIp;
+        if (!redisUtils.hasKey(viewKey)) {
+            redisUtils.set(viewKey, "1", RateLimitConstants.VIEW_DEDUP_WINDOW_SECONDS,
+                    java.util.concurrent.TimeUnit.SECONDS);
+            postService.incrementViewCount(id);
+        }
         return CommonResult.success(post);
     }
 
@@ -88,6 +110,11 @@ public class PostController {
     }
 
     @PostMapping("/{id}/like")
+    @RateLimit(key = RateLimitConstants.RL_POST_LIKE,
+               limit = RateLimitConstants.POST_LIKE_LIMIT,
+               period = 86400L,
+               limitBy = RateLimitType.USER,
+               message = "点赞过于频繁，每天最多点赞100次")
     public CommonResult<Map<String, Boolean>> toggleLike(@PathVariable Long id) {
         Long userId = getCurrentUserId();
         boolean liked = postService.toggleLike(id, userId);

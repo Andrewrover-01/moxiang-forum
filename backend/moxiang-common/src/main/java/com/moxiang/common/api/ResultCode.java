@@ -45,7 +45,20 @@ public enum ResultCode {
     NOT_FAVORITED(7002, "尚未收藏"),
 
     // Notification related
-    NOTIFICATION_NOT_FOUND(8001, "通知不存在");
+    NOTIFICATION_NOT_FOUND(8001, "通知不存在"),
+
+    // Anti-fraud related
+    RATE_LIMITED(429, "操作过于频繁，请稍后再试"),
+    DEVICE_BLOCKED(4030, "设备已被封禁，请联系管理员"),
+
+    // CAPTCHA related
+    CAPTCHA_REQUIRED(427, "请完成人机验证"),
+    CAPTCHA_INVALID(4270, "验证码无效或已过期，请重新验证"),
+
+    // Moderation related
+    CONTENT_UNDER_REVIEW(4031, "内容正在审核中，请等待审核通过"),
+    CONTENT_REJECTED(4032, "内容已被审核驳回，不符合社区规范"),
+    REPORT_NOT_FOUND(9001, "举报记录不存在");
 
     private final int code;
     private final String message;

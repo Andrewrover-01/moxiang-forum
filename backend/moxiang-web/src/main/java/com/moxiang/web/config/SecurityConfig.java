@@ -1,7 +1,9 @@
 package com.moxiang.web.config;
 
 import com.moxiang.common.constant.AuthConstants;
+import com.moxiang.web.filter.DeviceFingerprintFilter;
 import com.moxiang.web.filter.JwtAuthFilter;
+import com.moxiang.web.filter.SecurityMiddlewareFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -26,9 +28,15 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final DeviceFingerprintFilter deviceFingerprintFilter;
+    private final SecurityMiddlewareFilter securityMiddlewareFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter,
+                          DeviceFingerprintFilter deviceFingerprintFilter,
+                          SecurityMiddlewareFilter securityMiddlewareFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.deviceFingerprintFilter = deviceFingerprintFilter;
+        this.securityMiddlewareFilter = securityMiddlewareFilter;
     }
 
     @Bean
@@ -44,6 +52,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/user/register",
                     "/api/user/login",
+                    "/api/captcha/**",
                     "/api/forum/list",
                     "/api/forum/{id}",
                     "/swagger-ui/**",
@@ -60,6 +69,8 @@ public class SecurityConfig {
                 // Everything else needs authentication
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(securityMiddlewareFilter, DeviceFingerprintFilter.class)
+            .addFilterBefore(deviceFingerprintFilter, JwtAuthFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

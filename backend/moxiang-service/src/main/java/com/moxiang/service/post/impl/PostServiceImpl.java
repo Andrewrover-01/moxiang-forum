@@ -6,12 +6,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moxiang.common.api.ResultCode;
 import com.moxiang.common.constant.AuthConstants;
+import com.moxiang.common.constant.ContentType;
 import com.moxiang.common.exception.BusinessException;
 import com.moxiang.common.utils.RedisUtils;
 import com.moxiang.mbg.entity.Post;
 import com.moxiang.mbg.entity.PostTag;
 import com.moxiang.mbg.mapper.PostMapper;
 import com.moxiang.mbg.mapper.PostTagMapper;
+import com.moxiang.service.moderation.ContentModerationService;
 import com.moxiang.service.notification.NotificationService;
 import com.moxiang.service.post.PostService;
 import org.springframework.stereotype.Service;
@@ -33,12 +35,15 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
     private final RedisUtils redisUtils;
     private final PostTagMapper postTagMapper;
     private final NotificationService notificationService;
+    private final ContentModerationService moderationService;
 
     public PostServiceImpl(RedisUtils redisUtils, PostTagMapper postTagMapper,
-                           NotificationService notificationService) {
+                           NotificationService notificationService,
+                           ContentModerationService moderationService) {
         this.redisUtils = redisUtils;
         this.postTagMapper = postTagMapper;
         this.notificationService = notificationService;
+        this.moderationService = moderationService;
     }
 
     @Override
@@ -61,6 +66,9 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post> implements Po
         if (!CollectionUtils.isEmpty(tagIds)) {
             bindTags(post.getId(), tagIds);
         }
+
+        // Machine review — flags and hides post if sensitive content detected
+        moderationService.machineReview(ContentType.POST, post.getId(), userId, title, content);
 
         // Invalidate hot posts cache
         redisUtils.delete(AuthConstants.HOT_POST_CACHE_KEY);

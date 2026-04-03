@@ -25,6 +25,9 @@
             placeholder="请输入帖子内容"
           />
         </el-form-item>
+        <el-form-item label="人机验证">
+          <CaptchaWidget scene="POST" @verified="onCaptchaVerified" ref="captchaRef" />
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="loading" @click="handleSubmit">发布</el-button>
           <el-button @click="router.go(-1)">取消</el-button>
@@ -41,11 +44,14 @@ import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { getForumList } from '@/api/forum'
 import { createPost } from '@/api/post'
 import type { Forum } from '@/types/api'
+import CaptchaWidget from '@/components/CaptchaWidget.vue'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
+const captchaRef = ref<InstanceType<typeof CaptchaWidget>>()
 const loading = ref(false)
 const forums = ref<Forum[]>([])
+const captchaToken = ref('')
 
 const form = reactive({
   forumId: undefined as number | undefined,
@@ -64,10 +70,19 @@ onMounted(async () => {
   forums.value = data.data
 })
 
+function onCaptchaVerified(token: string) {
+  captchaToken.value = token
+}
+
 async function handleSubmit() {
   if (!formRef.value) return
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
+
+  if (!captchaToken.value) {
+    ElMessage.warning('请先完成人机验证')
+    return
+  }
 
   loading.value = true
   try {
@@ -75,9 +90,13 @@ async function handleSubmit() {
       forumId: form.forumId!,
       title: form.title,
       content: form.content
-    })
+    }, captchaToken.value)
     ElMessage.success('发布成功')
     router.push(`/post/${data.data.id}`)
+  } catch (err) {
+    console.error('[CreatePostView] Post submission failed:', err)
+    captchaToken.value = ''
+    captchaRef.value?.reload()
   } finally {
     loading.value = false
   }

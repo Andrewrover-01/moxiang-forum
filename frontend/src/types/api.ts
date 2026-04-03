@@ -61,3 +61,17 @@ export interface User {
 export interface LoginResult {
   token: string
 }
+
+/** CAPTCHA 挑战 */
+export interface CaptchaChallenge {
+  captchaId: string
+  /** 'INVISIBLE' or 'SLIDER' */
+  type: 'INVISIBLE' | 'SLIDER'
+  /** Only present when type === 'SLIDER' (0–100) */
+  sliderGapPercent?: number
+}
+
+/** CAPTCHA 验证结果 */
+export interface CaptchaVerifyResult {
+  captchaToken: string
+}
