@@ -39,7 +39,13 @@ public final class CaptchaConstants {
      */
     public static final long TOKEN_TTL_SECONDS = 30L;
 
-    // ---- Slider tolerances ----
+    // ---- Slider range (% of track width) ----
+
+    /** Minimum gap position for SLIDER challenges (30%). */
+    public static final int SLIDER_MIN = 30;
+
+    /** Maximum gap position for SLIDER challenges (70%). */
+    public static final int SLIDER_MAX = 70;
 
     /**
      * Acceptable deviation (in percentage points, 0-100 scale) between the user's

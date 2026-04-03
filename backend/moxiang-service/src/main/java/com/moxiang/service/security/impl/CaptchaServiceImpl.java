@@ -2,6 +2,7 @@ package com.moxiang.service.security.impl;
 
 import com.moxiang.common.constant.CaptchaConstants;
 import com.moxiang.common.constant.RateLimitConstants;
+import com.moxiang.common.constant.RateLimitConstants;
 import com.moxiang.common.exception.CaptchaException;
 import com.moxiang.common.utils.RedisUtils;
 import com.moxiang.service.security.BlacklistService;
@@ -42,8 +43,8 @@ public class CaptchaServiceImpl implements CaptchaService {
      * Slider gap is randomly placed between these percentages (inclusive) so the
      * puzzle is always reachable on mobile without extreme drags.
      */
-    private static final int SLIDER_MIN = 30;
-    private static final int SLIDER_MAX = 70;
+    private static final int SLIDER_MIN = CaptchaConstants.SLIDER_MIN;
+    private static final int SLIDER_MAX = CaptchaConstants.SLIDER_MAX;
 
     private final RedisUtils redisUtils;
     private final BlacklistService blacklistService;

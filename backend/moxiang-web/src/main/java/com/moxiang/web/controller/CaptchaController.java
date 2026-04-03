@@ -78,7 +78,14 @@ public class CaptchaController {
     public CommonResult<Map<String, String>> verify(@RequestBody Map<String, Object> body) {
         String captchaId = (String) body.get("captchaId");
         Object rawAnswer = body.get("answer");
-        Integer answer = rawAnswer == null ? null : Integer.valueOf(rawAnswer.toString());
+        Integer answer = null;
+        if (rawAnswer != null) {
+            try {
+                answer = Integer.valueOf(rawAnswer.toString());
+            } catch (NumberFormatException e) {
+                throw new com.moxiang.common.exception.CaptchaException("答案格式无效，请重新验证");
+            }
+        }
 
         String token = captchaService.verifyAndIssueToken(captchaId, answer);
         return CommonResult.success(Map.of("captchaToken", token));

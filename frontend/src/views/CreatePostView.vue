@@ -93,7 +93,8 @@ async function handleSubmit() {
     }, captchaToken.value)
     ElMessage.success('发布成功')
     router.push(`/post/${data.data.id}`)
-  } catch {
+  } catch (err) {
+    console.error('[CreatePostView] Post submission failed:', err)
     captchaToken.value = ''
     captchaRef.value?.reload()
   } finally {

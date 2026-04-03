@@ -107,7 +107,8 @@ async function handleRegister() {
     await register(form.username, form.password, form.email, captchaToken.value)
     ElMessage.success('注册成功，请登录')
     router.push('/login')
-  } catch {
+  } catch (err) {
+    console.error('[RegisterView] Registration failed:', err)
     // Request interceptor already shows the error; refresh CAPTCHA on any failure
     captchaToken.value = ''
     captchaRef.value?.reload()

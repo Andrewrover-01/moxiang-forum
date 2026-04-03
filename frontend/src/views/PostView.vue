@@ -150,7 +150,8 @@ async function handleSubmitComment() {
     captchaToken.value = ''
     captchaRef.value?.reload()
     await loadComments()
-  } catch {
+  } catch (err) {
+    console.error('[PostView] Comment submission failed:', err)
     captchaToken.value = ''
     captchaRef.value?.reload()
   } finally {

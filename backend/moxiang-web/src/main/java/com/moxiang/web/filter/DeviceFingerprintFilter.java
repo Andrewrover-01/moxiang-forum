@@ -111,9 +111,9 @@ public class DeviceFingerprintFilter extends OncePerRequestFilter {
         }
         if (count > RateLimitConstants.REGISTER_LIMIT) {
             log.warn("High registration rate from IP {} (count={}); auto-gray-listing", clientIp, count);
-            // Auto gray-list the IP for 24 hours
+            // Auto gray-list the IP
             redisUtils.set(RateLimitConstants.GRAYLIST_IP + clientIp, "1",
-                    24 * 3600L, TimeUnit.SECONDS);
+                    RateLimitConstants.GRAYLIST_IP_TTL_SECONDS, TimeUnit.SECONDS);
         }
         // Record fingerprint → IP association for multi-account analysis
         redisUtils.set(RateLimitConstants.DEVICE_FP_PREFIX + fingerprint + ":ip", clientIp,

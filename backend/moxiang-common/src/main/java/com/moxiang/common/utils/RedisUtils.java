@@ -123,11 +123,13 @@ public class RedisUtils {
         redisTemplate.opsForHash().delete(key, hashKeys);
     }
 
-    // ---- Key scan (admin use only) ----
+    // ---- Key scan ----
 
     /**
      * Returns all Redis keys matching the given pattern using a non-blocking SCAN cursor.
-     * Safe to use in production as it does not block the Redis server.
+     * Safe to use in production as it iterates with a cursor and does not block Redis.
+     * Intended primarily for admin/monitoring use; avoid calling on very large keyspaces
+     * in latency-sensitive paths.
      */
     public Set<String> keys(String pattern) {
         Set<String> result = new java.util.HashSet<>();

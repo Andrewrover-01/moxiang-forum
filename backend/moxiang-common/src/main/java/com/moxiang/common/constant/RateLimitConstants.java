@@ -80,6 +80,9 @@ public final class RateLimitConstants {
      */
     public static final long VIEW_DEDUP_WINDOW_SECONDS = 600L;
 
+    /** How long (seconds) the graylist IP entry persists after auto-listing (24 hours). */
+    public static final long GRAYLIST_IP_TTL_SECONDS = 24L * 3600;
+
     /**
      * Divisor applied to the normal limit when the caller is on the graylist.
      * Effective limit = normalLimit / GRAYLIST_DIVISOR.
