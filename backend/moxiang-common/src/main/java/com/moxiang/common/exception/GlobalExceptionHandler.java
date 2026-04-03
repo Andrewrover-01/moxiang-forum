@@ -4,6 +4,7 @@ import com.moxiang.common.api.CommonResult;
 import com.moxiang.common.api.ResultCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.moxiang.common.exception.RateLimitException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -24,6 +25,13 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(RateLimitException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public CommonResult<Void> handleRateLimitException(RateLimitException e) {
+        log.warn("Rate limit exceeded: {}", e.getMessage());
+        return CommonResult.failed(ResultCode.RATE_LIMITED, e.getMessage());
+    }
 
     @ExceptionHandler(BusinessException.class)
     public CommonResult<Void> handleBusinessException(BusinessException e) {

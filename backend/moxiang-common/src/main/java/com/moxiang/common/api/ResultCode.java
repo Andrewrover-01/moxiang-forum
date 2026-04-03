@@ -45,7 +45,11 @@ public enum ResultCode {
     NOT_FAVORITED(7002, "尚未收藏"),
 
     // Notification related
-    NOTIFICATION_NOT_FOUND(8001, "通知不存在");
+    NOTIFICATION_NOT_FOUND(8001, "通知不存在"),
+
+    // Anti-fraud related
+    RATE_LIMITED(429, "操作过于频繁，请稍后再试"),
+    DEVICE_BLOCKED(4030, "设备已被封禁，请联系管理员");
 
     private final int code;
     private final String message;

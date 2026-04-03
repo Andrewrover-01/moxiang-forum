@@ -1,7 +1,10 @@
 package com.moxiang.web.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.moxiang.common.annotation.RateLimit;
+import com.moxiang.common.annotation.RateLimitType;
 import com.moxiang.common.api.CommonResult;
+import com.moxiang.common.constant.RateLimitConstants;
 import com.moxiang.common.exception.BusinessException;
 import com.moxiang.common.api.ResultCode;
 import com.moxiang.mbg.entity.User;
@@ -29,6 +32,11 @@ public class UserController {
     }
 
     @PostMapping("/register")
+    @RateLimit(key = RateLimitConstants.RL_REGISTER,
+               limit = RateLimitConstants.REGISTER_LIMIT,
+               period = 3600L,
+               limitBy = RateLimitType.IP,
+               message = "注册请求过于频繁，请稍后再试")
     public CommonResult<User> register(@Valid @RequestBody RegisterRequest req) {
         User user = userService.register(req.getUsername(), req.getPassword(), req.getEmail());
         user.setPassword(null); // Never return password

@@ -123,6 +123,17 @@ public class RedisUtils {
         redisTemplate.opsForHash().delete(key, hashKeys);
     }
 
+    // ---- Key scan (admin use only — avoid on large keyspaces) ----
+
+    /**
+     * Returns all Redis keys matching the given pattern.
+     * Use this only in low-traffic admin scenarios; prefer SCAN in large deployments.
+     */
+    public Set<String> keys(String pattern) {
+        Set<String> raw = redisTemplate.keys(pattern);
+        return raw == null ? Set.of() : raw;
+    }
+
     // ---- List ops ----
 
     public long listRightPush(String key, Object value) {
