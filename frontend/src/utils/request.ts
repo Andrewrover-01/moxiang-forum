@@ -49,6 +49,10 @@ request.interceptors.response.use(
         router.push({ name: 'Login' })
       } else if (status === 403) {
         ElMessage.error('权限不足，无法执行此操作')
+      } else if (status === 429) {
+        ElMessage.error(error.response.data?.message || '操作过于频繁，请稍后再试')
+      } else if (error.response.data?.code === 4270) {
+        ElMessage.error(error.response.data?.message || '验证码无效，请重新验证')
       } else if (status === 500) {
         ElMessage.error('服务器内部错误，请稍后重试')
       } else {

@@ -3,6 +3,7 @@ package com.moxiang.web.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.moxiang.common.annotation.RateLimit;
 import com.moxiang.common.annotation.RateLimitType;
+import com.moxiang.common.annotation.RequireCaptcha;
 import com.moxiang.common.api.CommonResult;
 import com.moxiang.common.constant.RateLimitConstants;
 import com.moxiang.common.exception.BusinessException;
@@ -37,6 +38,7 @@ public class UserController {
                period = 3600L,
                limitBy = RateLimitType.IP,
                message = "注册请求过于频繁，请稍后再试")
+    @RequireCaptcha(scene = "REGISTER")
     public CommonResult<User> register(@Valid @RequestBody RegisterRequest req) {
         User user = userService.register(req.getUsername(), req.getPassword(), req.getEmail());
         user.setPassword(null); // Never return password

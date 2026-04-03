@@ -30,6 +30,10 @@
           />
         </el-form-item>
 
+        <el-form-item label="人机验证">
+          <CaptchaWidget scene="REGISTER" @verified="onCaptchaVerified" ref="captchaRef" />
+        </el-form-item>
+
         <el-form-item>
           <el-button
             type="primary"
@@ -55,10 +59,13 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { register } from '@/api/user'
+import CaptchaWidget from '@/components/CaptchaWidget.vue'
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
+const captchaRef = ref<InstanceType<typeof CaptchaWidget>>()
 const loading = ref(false)
+const captchaToken = ref('')
 
 const form = reactive({
   username: '',
@@ -81,16 +88,29 @@ const rules: FormRules = {
   ]
 }
 
+function onCaptchaVerified(token: string) {
+  captchaToken.value = token
+}
+
 async function handleRegister() {
   if (!formRef.value) return
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
 
+  if (!captchaToken.value) {
+    ElMessage.warning('请先完成人机验证')
+    return
+  }
+
   loading.value = true
   try {
-    await register(form.username, form.password, form.email)
+    await register(form.username, form.password, form.email, captchaToken.value)
     ElMessage.success('注册成功，请登录')
     router.push('/login')
+  } catch {
+    // Request interceptor already shows the error; refresh CAPTCHA on any failure
+    captchaToken.value = ''
+    captchaRef.value?.reload()
   } finally {
     loading.value = false
   }

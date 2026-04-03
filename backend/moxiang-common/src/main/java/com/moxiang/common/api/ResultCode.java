@@ -49,7 +49,11 @@ public enum ResultCode {
 
     // Anti-fraud related
     RATE_LIMITED(429, "操作过于频繁，请稍后再试"),
-    DEVICE_BLOCKED(4030, "设备已被封禁，请联系管理员");
+    DEVICE_BLOCKED(4030, "设备已被封禁，请联系管理员"),
+
+    // CAPTCHA related
+    CAPTCHA_REQUIRED(427, "请完成人机验证"),
+    CAPTCHA_INVALID(4270, "验证码无效或已过期，请重新验证");
 
     private final int code;
     private final String message;

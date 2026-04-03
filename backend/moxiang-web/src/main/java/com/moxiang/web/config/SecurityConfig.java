@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/user/register",
                     "/api/user/login",
+                    "/api/captcha/**",
                     "/api/forum/list",
                     "/api/forum/{id}",
                     "/swagger-ui/**",

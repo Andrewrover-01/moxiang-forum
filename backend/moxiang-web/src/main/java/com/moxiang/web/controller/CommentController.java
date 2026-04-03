@@ -3,6 +3,7 @@ package com.moxiang.web.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.moxiang.common.annotation.RateLimit;
 import com.moxiang.common.annotation.RateLimitType;
+import com.moxiang.common.annotation.RequireCaptcha;
 import com.moxiang.common.api.CommonResult;
 import com.moxiang.common.api.ResultCode;
 import com.moxiang.common.constant.RateLimitConstants;
@@ -36,6 +37,7 @@ public class CommentController {
                period = 3600L,
                limitBy = RateLimitType.USER,
                message = "评论过于频繁，每小时最多评论30次")
+    @RequireCaptcha(scene = "COMMENT")
     public CommonResult<Comment> createComment(@Valid @RequestBody CommentCreateDTO dto) {
         Long userId = getCurrentUserId();
         Comment comment = commentService.createComment(

@@ -1,5 +1,6 @@
 import request from '@/utils/request'
 import type { ApiResponse, LoginResult, User, PageResult } from '@/types/api'
+import { CAPTCHA_TOKEN_HEADER } from '@/utils/captchaHeader'
 
 /** 登录 */
 export function login(username: string, password: string) {
@@ -7,8 +8,10 @@ export function login(username: string, password: string) {
 }
 
 /** 注册 */
-export function register(username: string, password: string, email: string) {
-  return request.post<ApiResponse<User>>('/user/register', { username, password, email })
+export function register(username: string, password: string, email: string, captchaToken?: string) {
+  return request.post<ApiResponse<User>>('/user/register', { username, password, email }, {
+    headers: captchaToken ? { [CAPTCHA_TOKEN_HEADER]: captchaToken } : {}
+  })
 }
 
 /** 退出登录 */

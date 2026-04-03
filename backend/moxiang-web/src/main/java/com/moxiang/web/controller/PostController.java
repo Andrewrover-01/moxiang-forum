@@ -3,6 +3,7 @@ package com.moxiang.web.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.moxiang.common.annotation.RateLimit;
 import com.moxiang.common.annotation.RateLimitType;
+import com.moxiang.common.annotation.RequireCaptcha;
 import com.moxiang.common.api.CommonResult;
 import com.moxiang.common.api.ResultCode;
 import com.moxiang.common.constant.RateLimitConstants;
@@ -42,6 +43,7 @@ public class PostController {
                period = 3600L,
                limitBy = RateLimitType.USER,
                message = "发帖过于频繁，每小时最多发10篇帖子")
+    @RequireCaptcha(scene = "POST")
     public CommonResult<Post> createPost(@Valid @RequestBody PostCreateDTO dto) {
         Long userId = getCurrentUserId();
         Post post = postService.createPost(userId, dto.getForumId(), dto.getTitle(),
