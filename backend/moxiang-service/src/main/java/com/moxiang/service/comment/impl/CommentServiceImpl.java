@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moxiang.common.api.ResultCode;
 import com.moxiang.common.constant.AuthConstants;
+import com.moxiang.common.constant.ContentType;
 import com.moxiang.common.exception.BusinessException;
 import com.moxiang.common.utils.RedisUtils;
 import com.moxiang.mbg.entity.Comment;
@@ -13,6 +14,7 @@ import com.moxiang.mbg.entity.Post;
 import com.moxiang.mbg.mapper.CommentMapper;
 import com.moxiang.mbg.mapper.PostMapper;
 import com.moxiang.service.comment.CommentService;
+import com.moxiang.service.moderation.ContentModerationService;
 import com.moxiang.service.notification.NotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,12 +30,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
     private final PostMapper postMapper;
     private final RedisUtils redisUtils;
     private final NotificationService notificationService;
+    private final ContentModerationService moderationService;
 
     public CommentServiceImpl(PostMapper postMapper, RedisUtils redisUtils,
-                              NotificationService notificationService) {
+                              NotificationService notificationService,
+                              ContentModerationService moderationService) {
         this.postMapper = postMapper;
         this.redisUtils = redisUtils;
         this.notificationService = notificationService;
+        this.moderationService = moderationService;
     }
 
     @Override
@@ -52,6 +57,9 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
                 .setLikeCount(0L)
                 .setStatus(0);
         save(comment);
+
+        // Machine review — flags and hides comment if sensitive content detected
+        moderationService.machineReview(ContentType.COMMENT, comment.getId(), userId, content);
 
         // Increment post comment count
         postMapper.update(null,

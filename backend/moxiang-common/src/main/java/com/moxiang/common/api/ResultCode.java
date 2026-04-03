@@ -53,7 +53,12 @@ public enum ResultCode {
 
     // CAPTCHA related
     CAPTCHA_REQUIRED(427, "请完成人机验证"),
-    CAPTCHA_INVALID(4270, "验证码无效或已过期，请重新验证");
+    CAPTCHA_INVALID(4270, "验证码无效或已过期，请重新验证"),
+
+    // Moderation related
+    CONTENT_UNDER_REVIEW(4031, "内容正在审核中，请等待审核通过"),
+    CONTENT_REJECTED(4032, "内容已被审核驳回，不符合社区规范"),
+    REPORT_NOT_FOUND(9001, "举报记录不存在");
 
     private final int code;
     private final String message;

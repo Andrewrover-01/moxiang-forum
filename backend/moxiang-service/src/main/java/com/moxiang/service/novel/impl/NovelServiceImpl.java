@@ -6,12 +6,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moxiang.common.api.ResultCode;
 import com.moxiang.common.constant.AuthConstants;
+import com.moxiang.common.constant.ContentType;
 import com.moxiang.common.exception.BusinessException;
 import com.moxiang.common.utils.RedisUtils;
 import com.moxiang.mbg.entity.Novel;
 import com.moxiang.mbg.entity.NovelChapter;
 import com.moxiang.mbg.mapper.NovelChapterMapper;
 import com.moxiang.mbg.mapper.NovelMapper;
+import com.moxiang.service.moderation.ContentModerationService;
 import com.moxiang.service.novel.NovelService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,10 +30,13 @@ public class NovelServiceImpl extends ServiceImpl<NovelMapper, Novel> implements
 
     private final NovelChapterMapper chapterMapper;
     private final RedisUtils redisUtils;
+    private final ContentModerationService moderationService;
 
-    public NovelServiceImpl(NovelChapterMapper chapterMapper, RedisUtils redisUtils) {
+    public NovelServiceImpl(NovelChapterMapper chapterMapper, RedisUtils redisUtils,
+                            ContentModerationService moderationService) {
         this.chapterMapper = chapterMapper;
         this.redisUtils = redisUtils;
+        this.moderationService = moderationService;
     }
 
     @Override
@@ -167,6 +172,10 @@ public class NovelServiceImpl extends ServiceImpl<NovelMapper, Novel> implements
                 .setContent(content)
                 .setWordCount(wordCount);
         chapterMapper.insert(chapter);
+
+        // Machine review — chapters are high-risk content (novels can contain inappropriate material)
+        moderationService.machineReview(ContentType.NOVEL_CHAPTER, chapter.getId(), userId,
+                title, content);
 
         // Update novel stats
         novel.setChapterCount(nextChapterNumber)
