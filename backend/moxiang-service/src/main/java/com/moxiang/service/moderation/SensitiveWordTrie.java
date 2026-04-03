@@ -115,15 +115,29 @@ public final class SensitiveWordTrie {
         int ni = 0;  // position in normalized
         for (int oi = 0; oi < originalText.length(); oi++) {
             char c = originalText.charAt(oi);
-            if (VariantNormalizer.isSkippable(c) && ni < len && masked[Math.min(ni, len - 1)]) {
-                // Skippable char that was inside a masked region — mask it too
-                result.append('★');
+            if (isStrippedByNormalizer(c)) {
+                // Invisible chars have no position in normalized — mask them if current
+                // normalized position is inside a masked region
+                if (ni > 0 && ni <= len && masked[ni - 1]) {
+                    result.append('★');
+                } else {
+                    result.append(c);
+                }
+            } else if (VariantNormalizer.isSkippable(c)) {
+                // Skippable (punctuation/space): mask it when sitting inside a masked region
+                if (ni < len && masked[ni]) {
+                    result.append('★');
+                } else {
+                    result.append(c);
+                }
+                // Skippable chars are kept in normalized, so advance ni
+                ni++;
             } else if (ni < len && masked[ni]) {
                 result.append('★');
                 ni++;
             } else {
                 result.append(c);
-                if (ni < len && !isStrippedByNormalizer(c)) {
+                if (ni < len) {
                     ni++;
                 }
             }
